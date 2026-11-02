@@ -67,7 +67,7 @@ public class WidgetForm : Form
         Base = baseUrl.TrimEnd('/');
         statePath = Path.Combine(Path.GetTempPath(), "dsh-phone-widget.json");
 
-        Text = "DFY 风镜像";
+        Text = "dfy蓝色大肥鱼手机镜像";
         FormBorderStyle = FormBorderStyle.None;
         StartPosition = FormStartPosition.Manual;
         TopMost = true;

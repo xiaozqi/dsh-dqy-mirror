@@ -1,4 +1,4 @@
-# DFY 风镜像 · dsh-dfy-mirror
+# dfy蓝色大肥鱼手机镜像 · dsh-dfy-mirror
 
 [![ci](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

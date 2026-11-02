@@ -1,7 +1,7 @@
 {
   "name": "dsh-dfy-mirror",
-  "version": "2.3.0",
-  "description": "DFY 风镜像：给 DSH 加手机投屏，scrcpy 原生窗口当画面，DSH 浮窗 / 桌面控制窗 / 设置页三个入口，一个进程一个状态机。",
+  "version": "2.3.1",
+  "description": "dfy蓝色大肥鱼手机镜像：给 DSH 加手机投屏，scrcpy 原生窗口当画面，DSH 浮窗 / 桌面控制窗 / 设置页三个入口，一个进程一个状态机。",
   "type": "module",
   "license": "MIT",
   "author": "xiaozqi",

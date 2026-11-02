@@ -94,7 +94,7 @@ $font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9)
 $fontSmall = New-Object System.Drawing.Font('Microsoft YaHei UI', 8)
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'DFY 风镜像'
+$form.Text = 'dfy蓝色大肥鱼手机镜像'
 $form.FormBorderStyle = 'None'
 $form.StartPosition = 'Manual'
 $form.TopMost = $true
@@ -132,7 +132,7 @@ $title = New-Object System.Windows.Forms.Label
 $title.SetBounds(12, 7, 140, 20)
 $title.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9, [System.Drawing.FontStyle]::Bold)
 $title.ForeColor = $fg
-$title.Text = 'DFY 风镜像'
+$title.Text = 'dfy蓝色大肥鱼手机镜像'
 $header.Controls.Add($title)
 
 $btnClose = New-Object System.Windows.Forms.Label
