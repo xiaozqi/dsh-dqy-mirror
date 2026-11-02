@@ -1,17 +1,17 @@
 {
-  "name": "dsh-phone-mirror",
-  "version": "2.2.0",
-  "description": "DSH 手机投屏：scrcpy 原生窗口当画面，DSH 浮窗 / 桌面控制窗 / 设置页三个入口，一个进程一个状态机。",
+  "name": "dsh-dfy-mirror",
+  "version": "2.3.0",
+  "description": "DFY 风镜像：给 DSH 加手机投屏，scrcpy 原生窗口当画面，DSH 浮窗 / 桌面控制窗 / 设置页三个入口，一个进程一个状态机。",
   "type": "module",
   "license": "MIT",
   "author": "xiaozqi",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xiaozqi/dsh-phone-mirror.git"
+    "url": "git+https://github.com/xiaozqi/dsh-dfy-mirror.git"
   },
-  "homepage": "https://github.com/xiaozqi/dsh-phone-mirror#readme",
+  "homepage": "https://github.com/xiaozqi/dsh-dfy-mirror#readme",
   "bugs": {
-    "url": "https://github.com/xiaozqi/dsh-phone-mirror/issues"
+    "url": "https://github.com/xiaozqi/dsh-dfy-mirror/issues"
   },
   "keywords": [
     "deepseek-harness",

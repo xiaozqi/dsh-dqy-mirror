@@ -67,7 +67,7 @@ public class WidgetForm : Form
         Base = baseUrl.TrimEnd('/');
         statePath = Path.Combine(Path.GetTempPath(), "dsh-phone-widget.json");
 
-        Text = "手机投屏";
+        Text = "DFY 风镜像";
         FormBorderStyle = FormBorderStyle.None;
         StartPosition = FormStartPosition.Manual;
         TopMost = true;
@@ -124,14 +124,14 @@ public class WidgetForm : Form
         swPower.Click += (s, e) =>
         {
             if (syncing) return;
-            Post("/dsh-phone-mirror/start", "{}");
+            Post("/dsh-dfy-mirror/start", "{}");
             Thread.Sleep(300);
             Sync();
         };
         swTop.Click += (s, e) =>
         {
             if (syncing) return;
-            Post("/dsh-phone-mirror/topmost", "{\"on\":" + (swTop.On ? "true" : "false") + "}");
+            Post("/dsh-dfy-mirror/topmost", "{\"on\":" + (swTop.On ? "true" : "false") + "}");
             Thread.Sleep(500);
             Sync();
         };
@@ -169,7 +169,7 @@ public class WidgetForm : Form
         };
         b.FlatAppearance.BorderSize = 0;
         b.FlatAppearance.MouseOverBackColor = Color.FromArgb(40, 45, 56);
-        b.Click += (s, e) => Post("/dsh-phone-mirror/key", "{\"code\":" + code + "}");
+        b.Click += (s, e) => Post("/dsh-dfy-mirror/key", "{\"code\":" + code + "}");
         Controls.Add(b);
     }
 
@@ -241,8 +241,8 @@ public class WidgetForm : Form
         ThreadPool.QueueUserWorkItem(_ =>
         {
             string body = null;
-            try { body = Get("/dsh-phone-mirror/status"); } catch { }
-            try { Post("/dsh-phone-mirror/widget/ping", "{\"pid\":" + System.Diagnostics.Process.GetCurrentProcess().Id + "}"); } catch { }
+            try { body = Get("/dsh-dfy-mirror/status"); } catch { }
+            try { Post("/dsh-dfy-mirror/widget/ping", "{\"pid\":" + System.Diagnostics.Process.GetCurrentProcess().Id + "}"); } catch { }
             if (body == null)
             {
                 SafeUi(() => lblStatus.Text = "连不上宿主");

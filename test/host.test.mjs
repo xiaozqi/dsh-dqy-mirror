@@ -7,7 +7,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-process.env.DSH_HOME = mkdtempSync(join(tmpdir(), 'dshpm-test-'))
+process.env.DSH_HOME = mkdtempSync(join(tmpdir(), 'dfy-mirror-test-'))
 
 const routes = new Map()
 
@@ -54,15 +54,17 @@ function fakeRes() {
   return res
 }
 
+const P = '/dsh-dfy-mirror'
+
 test('apply 注册了核心路由', () => {
   assert.equal(typeof plugin.apply, 'function')
   for (const p of ['/status', '/config', '/devices', '/start', '/stop', '/key', '/topmost', '/widget']) {
-    assert.ok(routes.has('/dsh-phone-mirror' + p), '缺少路由 ' + p)
+    assert.ok(routes.has(P + p), '缺少路由 ' + p)
   }
 })
 
 test('GET /status 返回状态机和配置摘要', async () => {
-  const handler = routes.get('/dsh-phone-mirror/status')
+  const handler = routes.get(P + '/status')
   assert.equal(typeof handler, 'function')
   const res = fakeRes()
   await handler({ method: 'GET', headers: { host: '127.0.0.1:1234' }, on() {}, pipe() {} }, res)
@@ -76,7 +78,7 @@ test('GET /status 返回状态机和配置摘要', async () => {
 })
 
 test('GET /config 返回配置和默认值', async () => {
-  const handler = routes.get('/dsh-phone-mirror/config')
+  const handler = routes.get(P + '/config')
   const res = fakeRes()
   await handler({ method: 'GET', headers: { host: '127.0.0.1:1234' }, on() {}, pipe() {} }, res)
   assert.equal(res.status, 200)
@@ -87,9 +89,8 @@ test('GET /config 返回配置和默认值', async () => {
 })
 
 test('跨站写操作被 403 拦掉', async () => {
-  const handler = routes.get('/dsh-phone-mirror/key')
+  const handler = routes.get(P + '/key')
   const res = fakeRes()
-  let bodyRead = false
   await handler(
     {
       method: 'POST',
@@ -102,5 +103,4 @@ test('跨站写操作被 403 拦掉', async () => {
     res,
   )
   assert.equal(res.status, 403)
-  assert.equal(bodyRead, false)
 })

@@ -1,6 +1,6 @@
-# dsh-phone-mirror
+# DFY 风镜像 · dsh-dfy-mirror
 
-[![ci](https://github.com/xiaozqi/dsh-phone-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-phone-mirror/actions/workflows/ci.yml)
+[![ci](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 给 [DSH](https://github.com/deepseek-ai) 加一个「手机投屏」：点一下，桌面上出现一个 **scrcpy 原生窗口**（可选置顶）。
@@ -71,17 +71,17 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 
 ## 安装
 
-1. 把本目录放到 `~/.dsh/plugins/dsh-phone-mirror`
+1. 把本目录放到 `~/.dsh/plugins/dsh-dfy-mirror`
 2. 在 profile 的 `package.json` 里加：
 
    ```json
-   "dependencies": { "dsh-phone-mirror": "file:C:/Users/<you>/.dsh/plugins/dsh-phone-mirror" },
-   "dsh": { "profile": { "bundles": [ "...", "dsh-phone-mirror" ] } }
+   "dependencies": { "dsh-dfy-mirror": "file:C:/Users/<you>/.dsh/plugins/dsh-dfy-mirror" },
+   "dsh": { "profile": { "bundles": [ "...", "dsh-dfy-mirror" ] } }
    ```
 
 3. 重启 DSH
 
-## 配置（`~/.dsh/phone-mirror.json`）
+## 配置（`~/.dsh/dsh-dfy-mirror.json`）
 
 | 键 | 默认 | 说明 |
 | --- | --- | --- |
@@ -100,16 +100,16 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 
 | 方法 | 路径 | 作用 |
 | --- | --- | --- |
-| GET | `/dsh-phone-mirror/status` | 状态机当前状态、错误、设备型号、`widgetRunning` |
-| GET/POST | `/dsh-phone-mirror/config` | 读/写配置 |
-| GET | `/dsh-phone-mirror/devices` | `adb devices -l` |
-| POST | `/dsh-phone-mirror/start` `/stop` | 起停投屏窗口 |
-| POST | `/dsh-phone-mirror/key` | `{code}` 发送按键（4 返回 / 3 主屏 / 187 多任务 / 224 唤醒） |
-| POST | `/dsh-phone-mirror/topmost` | `{on:true|false}` 切换置顶；有 exe 时**原生秒切**，否则重启窗口 |
-| POST | `/dsh-phone-mirror/widget` | 拉起桌面控制窗 |
-| POST | `/dsh-phone-mirror/widget/ping` | 控制窗心跳 `{pid}`，宿主据此判断开关状态 |
-| POST | `/dsh-phone-mirror/widget/close` | 关掉控制窗（按上次心跳的 PID） |
-| GET | `/dsh-phone-mirror/log` | 最后 120 行日志 |
+| GET | `/dsh-dfy-mirror/status` | 状态机当前状态、错误、设备型号、`widgetRunning` |
+| GET/POST | `/dsh-dfy-mirror/config` | 读/写配置 |
+| GET | `/dsh-dfy-mirror/devices` | `adb devices -l` |
+| POST | `/dsh-dfy-mirror/start` `/stop` | 起停投屏窗口 |
+| POST | `/dsh-dfy-mirror/key` | `{code}` 发送按键（4 返回 / 3 主屏 / 187 多任务 / 224 唤醒） |
+| POST | `/dsh-dfy-mirror/topmost` | `{on:true|false}` 切换置顶；有 exe 时**原生秒切**，否则重启窗口 |
+| POST | `/dsh-dfy-mirror/widget` | 拉起桌面控制窗 |
+| POST | `/dsh-dfy-mirror/widget/ping` | 控制窗心跳 `{pid}`，宿主据此判断开关状态 |
+| POST | `/dsh-dfy-mirror/widget/close` | 关掉控制窗（按上次心跳的 PID） |
+| GET | `/dsh-dfy-mirror/log` | 最后 120 行日志 |
 
 ## 常见问题
 
@@ -118,7 +118,7 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 - **点窗口没反应**：确认手机没锁屏；scrcpy 的鼠标输入需要窗口在前台。
 - **窗口太大/太小**：设置里的「窗口宽度」是物理像素，125% 缩放时 460 ≈ 368 逻辑像素。也可以直接拖窗口边缘，停止时会记住。
 - **掉线了**：默认自动重连（每 10 秒一次，最多 6 次）；也可以在设置里关掉。
-- **日志在哪**：`~/.dsh/phone-mirror.log`（会滚动）。在浏览器里打开 `/dsh-phone-mirror/log` 看最后 120 行，
+- **日志在哪**：`~/.dsh/dsh-dfy-mirror.log`（会滚动）。在浏览器里打开 `/dsh-dfy-mirror/log` 看最后 120 行，
   中文不会乱码；用 Windows PowerShell 直接 `Get-Content` 看需要 `-Encoding UTF8`。
 
 ## 测试

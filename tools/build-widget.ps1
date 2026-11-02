@@ -1,5 +1,7 @@
-$src = 'C:\Users\admin\.dsh\plugins\dsh-phone-mirror\tools\widget.cs'
-$out = 'C:\Users\admin\.dsh\plugins\dsh-phone-mirror\bin\PhoneMirrorWidget.exe'
+﻿# Build the desktop control window from source (needs Windows .NET Framework, no SDK).
+$root = Split-Path -Parent $PSScriptRoot
+$src = Join-Path $root 'tools\widget.cs'
+$out = Join-Path $root 'bin\PhoneMirrorWidget.exe'
 if (-not (Test-Path (Split-Path $out))) { New-Item -ItemType Directory -Path (Split-Path $out) -Force | Out-Null }
 Get-Process PhoneMirrorWidget -ErrorAction SilentlyContinue | Stop-Process -Force
 if (Test-Path $out) { Remove-Item $out -Force }

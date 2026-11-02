@@ -82,7 +82,7 @@ function Api ([string]$path, $body) {
 }
 
 function GetStatus {
-  try { return Invoke-RestMethod -Uri ($Base + '/dsh-phone-mirror/status') -TimeoutSec 3 } catch { return $null }
+  try { return Invoke-RestMethod -Uri ($Base + '/dsh-dfy-mirror/status') -TimeoutSec 3 } catch { return $null }
 }
 
 $card = [System.Drawing.Color]::FromArgb(18, 20, 26)
@@ -94,7 +94,7 @@ $font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9)
 $fontSmall = New-Object System.Drawing.Font('Microsoft YaHei UI', 8)
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = '手机投屏'
+$form.Text = 'DFY 风镜像'
 $form.FormBorderStyle = 'None'
 $form.StartPosition = 'Manual'
 $form.TopMost = $true
@@ -132,7 +132,7 @@ $title = New-Object System.Windows.Forms.Label
 $title.SetBounds(12, 7, 140, 20)
 $title.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9, [System.Drawing.FontStyle]::Bold)
 $title.ForeColor = $fg
-$title.Text = '手机投屏'
+$title.Text = 'DFY 风镜像'
 $header.Controls.Add($title)
 
 $btnClose = New-Object System.Windows.Forms.Label
@@ -217,7 +217,7 @@ function NewKeyButton ([string]$text, [int]$x, [int]$y, [int]$code) {
   $b.Text = $text
   $b.FlatAppearance.BorderSize = 0
   $b.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(40, 45, 56)
-  $b.Add_Click({ Api '/dsh-phone-mirror/key' @{ code = $code } }.GetNewClosure())
+  $b.Add_Click({ Api '/dsh-dfy-mirror/key' @{ code = $code } }.GetNewClosure())
   $form.Controls.Add($b)
 }
 NewKeyButton '← 返回' 10 150 4
@@ -243,19 +243,19 @@ function Sync {
   } else {
     $lbl.Text = '已停止'
   }
-  try { Api '/dsh-phone-mirror/widget/ping' @{ pid = $PID } } catch {}
+  try { Api '/dsh-dfy-mirror/widget/ping' @{ pid = $PID } } catch {}
 }
 
 $swPower.Add_Click({
   if ($global:syncing) { return }
-  if ($swPower.On) { Api '/dsh-phone-mirror/start' @{ } } else { Api '/dsh-phone-mirror/stop' @{ } }
+  if ($swPower.On) { Api '/dsh-dfy-mirror/start' @{ } } else { Api '/dsh-dfy-mirror/stop' @{ } }
   Start-Sleep -Milliseconds 300
   Sync
 })
 
 $swTop.Add_Click({
   if ($global:syncing) { return }
-  Api '/dsh-phone-mirror/topmost' @{ on = [bool]$swTop.On }
+  Api '/dsh-dfy-mirror/topmost' @{ on = [bool]$swTop.On }
   Start-Sleep -Milliseconds 500
   Sync
 })
