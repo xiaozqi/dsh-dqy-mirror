@@ -4,6 +4,15 @@
   "description": "DSH 手机投屏：scrcpy 原生窗口当画面，DSH 浮窗 / 桌面控制窗 / 设置页三个入口，一个进程一个状态机。",
   "type": "module",
   "license": "MIT",
+  "author": "xzq134509",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xzq134509/dsh-phone-mirror.git"
+  },
+  "homepage": "https://github.com/xzq134509/dsh-phone-mirror#readme",
+  "bugs": {
+    "url": "https://github.com/xzq134509/dsh-phone-mirror/issues"
+  },
   "keywords": [
     "deepseek-harness",
     "dsh-plugin",
