@@ -1,0 +1,13 @@
+# 依赖
+node_modules/
+
+# 日志
+*.log
+*.log.*
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# bin/PhoneMirrorWidget.exe 是源码 tools/widget.cs 的构建产物，体积只有 ~17KB，
+# 为了开箱即用是提交进仓库的；改完界面重新跑 tools/build-widget.ps1 即可。

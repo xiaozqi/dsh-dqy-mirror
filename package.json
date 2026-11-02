@@ -1,0 +1,48 @@
+{
+  "name": "dsh-phone-mirror",
+  "version": "2.2.0",
+  "description": "DSH 手机投屏：scrcpy 原生窗口当画面，DSH 浮窗 / 桌面控制窗 / 设置页三个入口，一个进程一个状态机。",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "android",
+    "scrcpy",
+    "mirror"
+  ],
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "bin",
+    "tools",
+    "cordis.patch.yml",
+    "README.md",
+    "LESSONS.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/args.test.mjs test/config.test.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "slots"
+      ],
+      "external": [
+        "react"
+      ],
+      "immediately": true
+    }
+  }
+}
