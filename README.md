@@ -1,5 +1,8 @@
 # dsh-phone-mirror
 
+[![ci](https://github.com/xiaozqi/dsh-phone-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-phone-mirror/actions/workflows/ci.yml)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 给 [DSH](https://github.com/deepseek-ai) 加一个「手机投屏」：点一下，桌面上出现一个 **scrcpy 原生窗口**（可选置顶）。
 
 三个入口，同一套接口：
@@ -121,10 +124,16 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 ## 测试
 
 ```bash
-node --test test/args.test.mjs test/config.test.mjs
+npm test        # 等价于 node --test
 ```
 
-纯函数（参数拼装、adb 输出解析、配置校验）都有单测；进程相关的部分靠 `/status` 和 `/log` 观察。
+14 个用例，不依赖手机、不启动 scrcpy：
+
+- **纯函数**：scrcpy 参数拼装、`adb devices -l` / `wm size` 解析、退出码翻译、配置校验
+- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认核心路由都注册上了、`/status` 和 `/config` 返回结构正确、
+  跨站写操作会被 403 拦掉
+
+CI 在 GitHub Actions 上跑 Node 20 / 22（ubuntu），推上去就能看到徽章状态。
 
 ## License
 

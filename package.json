@@ -31,13 +31,14 @@
     "lib",
     "bin",
     "tools",
+    "docs",
     "cordis.patch.yml",
     "README.md",
     "LESSONS.md",
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/args.test.mjs test/config.test.mjs"
+    "test": "node --test"
   },
   "dsh": {
     "bundle": {
