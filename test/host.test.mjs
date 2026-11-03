@@ -58,7 +58,7 @@ const P = '/dsh-dfy-mirror'
 
 test('apply 注册了核心路由，且没有桌面窗的遗留路由', () => {
   assert.equal(typeof plugin.apply, 'function')
-  for (const p of ['/status', '/phone', '/config', '/devices', '/start', '/stop', '/key', '/unlock', '/topmost', '/log', '/panel.js']) {
+  for (const p of ['/status', '/phone', '/config', '/devices', '/start', '/stop', '/key', '/unlock', '/lock', '/topmost', '/log', '/panel.js']) {
     assert.ok(routes.has(P + p), '缺少路由 ' + p)
   }
   for (const p of ['/widget', '/widget/ping', '/widget/close', '/widget/bye']) {
