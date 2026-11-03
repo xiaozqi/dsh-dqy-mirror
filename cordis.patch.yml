@@ -1,5 +1,6 @@
-# DFY 风镜像（dsh-dfy-mirror）
-# 这一行同时激活「宿主半边」和 package.json 里声明的 dsh.client 网页半边。
+﻿# DFY 风镜像（dsh-dfy-mirror）
+# 只有宿主半边：页面里的胶囊由宿主注入的 panel.js 负责。
+# v4 起不再有网页半边（设置页），配置直接改 ~/.dsh/dsh-dfy-mirror.json。
 - insert:
     - id: dfy-mirror
       name: 'dsh-dfy-mirror'

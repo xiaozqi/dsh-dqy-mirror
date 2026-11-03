@@ -2,7 +2,7 @@
 // 样本就是这台华为 VCE-AL00 上真实 dumpsys 抓下来的关键行。
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { isLocked, isAwake, swipeFor } from '../lib/unlock.js'
+import { isLocked, isAwake, unlockScript } from '../lib/unlock.js'
 
 const LOCKED = `
     mShowingDream=false mDreamingLockscreen=true mDreamingSleepToken=null
@@ -42,15 +42,15 @@ test('isAwake 只认 mWakefulness=Awake', () => {
   assert.equal(isAwake(''), false)
 })
 
-test('上滑坐标按屏幕高度算，竖屏 1080x2310 落在验证过的位置', () => {
-  const sw = swipeFor({ width: 1080, height: 2310 })
-  assert.equal(sw.x, 540)
-  assert.equal(sw.from, 1848)
-  assert.equal(sw.to, 647)
+test('解锁脚本是一条命令：分支和等待都在手机端', () => {
+  const s = unlockScript('000000')
+  assert.ok(s.includes('MARK:state'))
+  assert.ok(s.includes('FINAL:'))
+  assert.ok(s.includes('input text 000000'))
+  // 自动提交后不该无条件按回车：整个脚本里只允许出现一次 keyevent 66
+  assert.equal(s.split('input keyevent 66').length - 1, 1)
 })
 
-test('拿不到屏幕尺寸时退回 1080x2310，不抛错', () => {
-  const sw = swipeFor(null)
-  assert.equal(sw.x, 540)
-  assert.ok(sw.from > sw.to)
+test('PIN 里的数字直接进脚本，不做额外转义', () => {
+  assert.ok(unlockScript('123456').includes('input text 123456'))
 })
