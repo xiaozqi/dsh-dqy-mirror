@@ -47,6 +47,32 @@ public class WidgetForm : Form
     [DllImport("user32.dll")] static extern bool ReleaseCapture();
     [DllImport("user32.dll")] static extern IntPtr SendMessage(IntPtr h, int msg, IntPtr w, IntPtr l);
 
+    // 这个窗口永远不要「激活」：它是个置顶遥控器。Windows 对「点在没激活的窗口上」
+    // 的第一下点击是「激活并吃掉」——实测只送到 WM_MOUSEACTIVATE，控件收不到
+    // MouseDown，用户看到的就是「点投屏开关没反应，要点第二下」。
+    // WS_EX_NOACTIVATE 让它不抢焦点，点击直接送到控件；标题条拖动照常可用。
+    protected override CreateParams CreateParams
+    {
+        get
+        {
+            var cp = base.CreateParams;
+            cp.ExStyle |= 0x08000000; // WS_EX_NOACTIVATE
+            return cp;
+        }
+    }
+
+    protected override void WndProc(ref Message m)
+    {
+        if (m.Msg == 0x0021) // WM_MOUSEACTIVATE
+        {
+            // 注意常量：MA_ACTIVATE=1、MA_ACTIVATEANDEAT=2、MA_NOACTIVATE=3。
+            // 2 是「激活并丢掉这一下点击」——之前就写成了 2，所以第一次点永远没反应。
+            m.Result = (IntPtr)3; // MA_NOACTIVATE：不激活、也不丢点击
+            return;
+        }
+        base.WndProc(ref m);
+    }
+
     readonly string Base;
     readonly string statePath;
     Label lblStatus;
@@ -131,20 +157,10 @@ public class WidgetForm : Form
             });
         });
 
-        swPower.Click += (s, e) =>
-        {
-            if (syncing) return;
-            Post("/dsh-dfy-mirror/start", "{}");
-            Thread.Sleep(300);
-            Sync();
-        };
-        swTop.Click += (s, e) =>
-        {
-            if (syncing) return;
-            Post("/dsh-dfy-mirror/topmost", "{\"on\":" + (swTop.On ? "true" : "false") + "}");
-            Thread.Sleep(500);
-            Sync();
-        };
+        // 投屏开关：On 是「点完之后想要的状态」（SwitchCtl 在 MouseDown 里就翻转了）。
+        // 以前这里不看 On、永远 POST /start，所以「关」按下去没反应——switch 一刷新又弹回来。
+        swPower.Click += (s, e) => TogglePower();
+        swTop.Click += (s, e) => ToggleTop();
 
         timer = new System.Windows.Forms.Timer { Interval = 1000 };
         timer.Tick += (s, e) => Sync();
@@ -193,6 +209,35 @@ public class WidgetForm : Form
         b.FlatAppearance.MouseOverBackColor = Color.FromArgb(40, 45, 56);
         b.Click += (s, e) => onClick();
         Controls.Add(b);
+    }
+
+    // 投屏开/关：按点完之后的 On 来决定发 /start 还是 /stop。
+    // 请求放线程池：/start 在 WiFi 上要连 adb，最长能到 6~7 秒，别把窗口冻住。
+    void TogglePower()
+    {
+        if (syncing) return;
+        bool want = swPower.On;
+        lblStatus.Text = want ? "启动中…" : "停止中…";
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            if (want) Post("/dsh-dfy-mirror/start", "{}", 15000);
+            else Post("/dsh-dfy-mirror/stop", "{}", 8000);
+            Thread.Sleep(400);
+            Sync();
+        });
+    }
+
+    void ToggleTop()
+    {
+        if (syncing) return;
+        bool want = swTop.On;
+        lblStatus.Text = "切换置顶…";
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            Post("/dsh-dfy-mirror/topmost", "{\"on\":" + (want ? "true" : "false") + "}", 10000);
+            Thread.Sleep(400);
+            Sync();
+        });
     }
 
     void ApplyRoundRegion()
@@ -278,7 +323,8 @@ public class WidgetForm : Form
             SafeUi(() =>
             {
                 syncing = true;
-                swPower.On = running;
+                // starting 期间 running 还是 false，开关别跟着弹回去（点完会闪一下）
+                swPower.On = running || state == "starting";
                 swPower.Invalidate();
                 swTop.On = top;
                 swTop.Invalidate();

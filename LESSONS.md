@@ -101,3 +101,24 @@ DSH 的 HTTP 服务和 Agent 跑在同一个 Node 事件循环里，**任何同�
 
 安全锁屏必须先 `input swipe` 上滑，PIN 键盘才会出现；少了这步 `input text` 打不进任何地方。
 
+## 八、桌面窗「投屏」开关点不动（2026-11-03）
+
+用户原话：「桌面窗控制不了投屏开关」。拆开是两个独立 bug：
+
+1. **开关永远发 `/start`。** `swPower.Click` 里写死了 `Post("/start")`，根本没看
+   `swPower.On`。所以「关」按下去只是发了一次启动，状态一刷新开关又弹回蓝色。
+   正确做法：`On` 在 `MouseDown` 里已经翻成「点完之后想要的状态」，按它选 `/start` 或 `/stop`。
+
+2. **没激活的窗口，第一下点击被吃掉。** 实测：scrcpy 抢走焦点后点开关，
+   控件连 `MouseDown` 都收不到，只收到一条 `WM_MOUSEACTIVATE`；点第二下才生效。
+   这是 Windows 的「激活并吃掉」（`MA_ACTIVATEANDEAT`）。
+   修法：窗口加 `WS_EX_NOACTIVATE`（置顶遥控器本来就不该抢焦点），
+   并且 `WM_MOUSEACTIVATE` 返回 **`MA_NOACTIVATE`(3)**。
+
+   ⚠️ 常量别记反：`MA_ACTIVATE=1`、`MA_ACTIVATEANDEAT=2`、`MA_NOACTIVATE=3`。
+   我第一版写成了 `2`，等于亲手「激活并丢弃」，越修越点不动。加 `WS_EX_NOACTIVATE` 后
+   标题条拖动仍然正常（`WM_NCLBUTTONDOWN` + `HTCAPTION` 不依赖激活）。
+
+顺带：`/start` 在 WiFi 上要连 adb，最长 6~7 秒，点击处理必须丢进线程池，
+否则点一下窗口就冻住 7 秒——看起来又像「点不动」。
+
