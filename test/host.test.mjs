@@ -58,9 +58,50 @@ const P = '/dsh-dfy-mirror'
 
 test('apply 注册了核心路由', () => {
   assert.equal(typeof plugin.apply, 'function')
-  for (const p of ['/status', '/config', '/devices', '/start', '/stop', '/key', '/unlock', '/topmost', '/widget']) {
+  for (const p of [
+    '/status',
+    '/config',
+    '/devices',
+    '/start',
+    '/stop',
+    '/key',
+    '/unlock',
+    '/topmost',
+    '/widget',
+    '/widget/ping',
+    '/widget/close',
+    '/widget/bye',
+  ]) {
     assert.ok(routes.has(P + p), '缺少路由 ' + p)
   }
+})
+
+test('桌面窗 bye 之后 /status 立刻显示 widgetRunning=false', async () => {
+  const ping = routes.get(P + '/widget/ping')
+  const bye = routes.get(P + '/widget/bye')
+  const status = routes.get(P + '/status')
+  const req = (body) => ({
+    method: 'POST',
+    headers: { host: '127.0.0.1:1234' },
+    on(evt, cb) {
+      if (evt === 'data') cb(JSON.stringify(body))
+      if (evt === 'end') cb()
+    },
+    pipe() {},
+  })
+  const call = async (handler, request) => {
+    const res = fakeRes()
+    await handler(request, res)
+    return res
+  }
+
+  await call(ping, req({ pid: 4242 }))
+  let res = await call(status, { method: 'GET', headers: { host: '127.0.0.1:1234' }, on() {}, pipe() {} })
+  assert.equal(JSON.parse(res.body).widgetRunning, true)
+
+  await call(bye, req({}))
+  res = await call(status, { method: 'GET', headers: { host: '127.0.0.1:1234' }, on() {}, pipe() {} })
+  assert.equal(JSON.parse(res.body).widgetRunning, false)
 })
 
 test('GET /status 返回状态机和配置摘要', async () => {

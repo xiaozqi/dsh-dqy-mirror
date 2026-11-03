@@ -110,6 +110,20 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 **已经解锁时不会上滑、也不会打字**（约 2 秒返回 `already:true`），
 所以不会把 PIN 打进正在用的 App 里。锁着的时候大约 8 秒。
 
+入口：DSH 浮窗里是**整行的一键解锁按钮**（在返回/主屏/多任务下面），
+桌面控制窗和设置页也各有一个按钮；请求进行中按钮会变成「解锁中…」并禁用。
+
+## 状态同步
+
+| 方向 | 怎么同步 |
+| --- | --- |
+| 桌面窗 → DSH | 关窗时控制窗先发 `POST /widget/bye`，DSH 上的「桌面窗」开关下一次轮询（≤2 秒）就变灰；被强杀/崩溃没来得及发，4 秒没心跳也算关 |
+| DSH → 桌面窗 | 控制窗每秒拉一次 `/status`，投屏/置顶开关跟着 DSH 和状态机走 |
+| 桌面窗 ↔ DSH 的投屏状态 | 两边都读同一个 `/status`，任一边起停，另一边 1~2 秒内跟上 |
+
+DSH 浮窗的请求都带超时（GET 8 秒 / POST 20 秒）：宿主要是重启中或卡住，
+轮询不会因为一个永挂的 fetch 而停摆。
+
 ## 接口（全部同源可写，跨站写操作一律 403）
 
 | 方法 | 路径 | 作用 |
@@ -122,14 +136,15 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 | POST | `/dsh-dfy-mirror/unlock` | 一键解锁：唤醒 + 上滑 + 输 PIN |
 | POST | `/dsh-dfy-mirror/topmost` | `{on:true|false}` 切换置顶；有 exe 时**原生秒切**，否则重启窗口 |
 | POST | `/dsh-dfy-mirror/widget` | 拉起桌面控制窗 |
-| POST | `/dsh-dfy-mirror/widget/ping` | 控制窗心跳 `{pid}`，宿主据此判断开关状态 |
+| POST | `/dsh-dfy-mirror/widget/ping` | 控制窗心跳 `{pid}`（每秒一次），宿主据此判断开关状态 |
 | POST | `/dsh-dfy-mirror/widget/close` | 关掉控制窗（按上次心跳的 PID） |
+| POST | `/dsh-dfy-mirror/widget/bye` | 控制窗自己关的时候调用：只清状态，不杀进程 |
 | GET | `/dsh-dfy-mirror/log` | 最后 120 行日志 |
 
 ## 常见问题
 
 - **scrcpy 崩溃 `0xC0000005`**：通常是端口/驱动冲突。停掉再来一次，或换 USB / 换 `adb tcpip` 端口。
-- **窗口是黑的**：手机息屏或锁屏了。点「🔓 解锁」（浮窗/桌面窗/设置页都有）。
+- **窗口是黑的**：手机息屏或锁屏了。点「一键解锁」（浮窗/桌面窗/设置页都有）。
 - **点窗口没反应**：确认手机没锁屏；scrcpy 的鼠标输入需要窗口在前台。
 - **窗口太大/太小**：设置里的「窗口宽度」是物理像素，125% 缩放时 460 ≈ 368 逻辑像素。也可以直接拖窗口边缘，停止时会记住。
 - **掉线了**：默认自动重连（1.5 秒先试一次，之后 3/8/10 秒，最多 6 次）；也可以在设置里关掉。
@@ -142,12 +157,13 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 npm test        # 等价于 node --test
 ```
 
-22 个用例，不依赖手机、不启动 scrcpy：
+23 个用例，不依赖手机、不启动 scrcpy：
 
 - **纯函数**：scrcpy 参数拼装、`adb devices -l` / `wm size` 解析、退出码翻译、配置校验、
   锁屏判据 / 解锁坐标
-- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认核心路由（含 `/unlock`）都注册上了、`/status` 和 `/config`
-  返回结构正确、跨站写操作会被 403 拦掉
+- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认核心路由（含 `/unlock`、`/widget/bye`）都注册上了、
+  `/status` 和 `/config` 返回结构正确、桌面窗 bye 之后 `widgetRunning` 立刻变 false、
+  跨站写操作会被 403 拦掉
 
 CI 在 GitHub Actions 上跑 Node 20 / 22（ubuntu），推上去就能看到徽章状态。
 

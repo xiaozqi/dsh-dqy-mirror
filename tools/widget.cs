@@ -150,7 +150,14 @@ public class WidgetForm : Form
         timer.Tick += (s, e) => Sync();
         timer.Start();
 
-        FormClosing += (s, e) => SavePos();
+        FormClosing += (s, e) =>
+        {
+            SavePos();
+            try { timer.Stop(); } catch { }
+            // 告诉宿主「我关了」：DSH 上的「桌面窗」开关下一次轮询就同步成关，
+            // 不用等 4 秒心跳过期。
+            try { Post("/dsh-dfy-mirror/widget/bye", "{}", 1500); } catch { }
+        };
         Shown += (s, e) => Sync();
     }
 
