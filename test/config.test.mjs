@@ -34,3 +34,12 @@ test('宽度和 graceMs 会被夹到合理区间', () => {
   assert.equal(sanitize({ graceMs: 1 }).graceMs, DEFAULTS.graceMs)
   assert.equal(sanitize({ windowWidth: 'abc' }).windowWidth, DEFAULTS.windowWidth)
 })
+
+test('PIN 只收 4~12 位数字，别的一律退回默认', () => {
+  assert.equal(sanitize({ pin: '1234' }).pin, '1234')
+  assert.equal(sanitize({ pin: ' 000000 ' }).pin, '000000')
+  assert.equal(sanitize({ pin: '12' }).pin, DEFAULTS.pin)
+  assert.equal(sanitize({ pin: '1234567890123' }).pin, DEFAULTS.pin)
+  assert.equal(sanitize({ pin: '000000; rm -rf /' }).pin, DEFAULTS.pin)
+  assert.equal(sanitize({ pin: '' }).pin, DEFAULTS.pin)
+})

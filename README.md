@@ -9,9 +9,9 @@
 
 | 入口 | 位置 | 说明 |
 | --- | --- | --- |
-| **DSH 浮窗** | DSH 页面右下角 | 默认收成一个小胶囊，点开是「投屏 / 置顶 / 桌面窗」三个开关 + 返回/主屏/多任务/唤醒 |
+| **DSH 浮窗** | DSH 页面顶部正中 | 收起时是一颗小胶囊；点开在原地展开成「投屏 / 置顶 / 桌面窗」三个开关 + 返回/主屏/多任务/一键解锁 |
 | **桌面控制窗** | 桌面上一个独立小窗口 | 全局置顶、能拖到任何地方、能最小化；和浮窗同一套交互 |
-| **设置 → 手机投屏** | DSH 个人头像 → 设置（`Ctrl+,`） | 选设备、起停、改参数 |
+| **设置 → 手机投屏** | DSH 个人头像 → 设置（`Ctrl+,`） | 选设备、起停、一键解锁、改参数 |
 
 > 为什么浮窗不能“拖出 DSH”？网页元素被裁剪在 Electron 窗口里，Windows 上拖不出去。
 > 要真正全局，只能是一个独立的操作系统窗口——也就是桌面控制窗。
@@ -94,7 +94,21 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 | `windowWidth` | `460` | 窗口内容宽度（物理像素）；拖过窗口大小后会在停止时自动记住 |
 | `turnScreenOff` | `true` | 投屏时关手机屏幕（省电，窗口照常显示） |
 | `graceMs` | `1200` | scrcpy 活过这么久才算启动成功 |
-| `reconnect` | `true` | 意外掉线后每 10 秒重试，最多 6 次 |
+| `reconnect` | `true` | 意外掉线后重试（1.5s / 3s / 8s / 10s…，最多 6 次） |
+| `pin` | `000000` | 锁屏 PIN，一键解锁用；只收 4~12 位数字，存在本机配置文件里 |
+
+## 一键解锁
+
+`POST /dsh-dfy-mirror/unlock`（浮窗、桌面控制窗、设置页的「解锁」按钮都调它）会：
+
+1. `input keyevent 224` 点亮屏幕；
+2. `wm dismiss-keyguard` 撤掉非安全锁屏；
+3. 如果还在锁屏（`dumpsys window` 里 `isStatusBarKeyguard=true`）：
+   `input swipe` 上滑 → `input text <pin>` → `input keyevent 66`；
+4. 再读一次 keyguard 状态，把 `{ok, locked, awake, steps}` 返回给界面。
+
+**已经解锁时不会上滑、也不会打字**（约 2 秒返回 `already:true`），
+所以不会把 PIN 打进正在用的 App 里。锁着的时候大约 8 秒。
 
 ## 接口（全部同源可写，跨站写操作一律 403）
 
@@ -103,8 +117,9 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 | GET | `/dsh-dfy-mirror/status` | 状态机当前状态、错误、设备型号、`widgetRunning` |
 | GET/POST | `/dsh-dfy-mirror/config` | 读/写配置 |
 | GET | `/dsh-dfy-mirror/devices` | `adb devices -l` |
-| POST | `/dsh-dfy-mirror/start` `/stop` | 起停投屏窗口 |
-| POST | `/dsh-dfy-mirror/key` | `{code}` 发送按键（4 返回 / 3 主屏 / 187 多任务 / 224 唤醒） |
+| POST | `/dsh-dfy-mirror/start` `/stop` | 起停投屏窗口（启动前会先清掉残留的 scrcpy，避免两个窗口抢端口） |
+| POST | `/dsh-dfy-mirror/key` | `{code}` 发送按键（4 返回 / 3 主屏 / 187 多任务） |
+| POST | `/dsh-dfy-mirror/unlock` | 一键解锁：唤醒 + 上滑 + 输 PIN |
 | POST | `/dsh-dfy-mirror/topmost` | `{on:true|false}` 切换置顶；有 exe 时**原生秒切**，否则重启窗口 |
 | POST | `/dsh-dfy-mirror/widget` | 拉起桌面控制窗 |
 | POST | `/dsh-dfy-mirror/widget/ping` | 控制窗心跳 `{pid}`，宿主据此判断开关状态 |
@@ -114,10 +129,10 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 ## 常见问题
 
 - **scrcpy 崩溃 `0xC0000005`**：通常是端口/驱动冲突。停掉再来一次，或换 USB / 换 `adb tcpip` 端口。
-- **窗口是黑的**：手机息屏或锁屏了。点「☀ 唤醒」，或先手动解锁。
+- **窗口是黑的**：手机息屏或锁屏了。点「🔓 解锁」（浮窗/桌面窗/设置页都有）。
 - **点窗口没反应**：确认手机没锁屏；scrcpy 的鼠标输入需要窗口在前台。
 - **窗口太大/太小**：设置里的「窗口宽度」是物理像素，125% 缩放时 460 ≈ 368 逻辑像素。也可以直接拖窗口边缘，停止时会记住。
-- **掉线了**：默认自动重连（每 10 秒一次，最多 6 次）；也可以在设置里关掉。
+- **掉线了**：默认自动重连（1.5 秒先试一次，之后 3/8/10 秒，最多 6 次）；也可以在设置里关掉。
 - **日志在哪**：`~/.dsh/dsh-dfy-mirror.log`（会滚动）。在浏览器里打开 `/dsh-dfy-mirror/log` 看最后 120 行，
   中文不会乱码；用 Windows PowerShell 直接 `Get-Content` 看需要 `-Encoding UTF8`。
 
@@ -127,11 +142,12 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 npm test        # 等价于 node --test
 ```
 
-14 个用例，不依赖手机、不启动 scrcpy：
+22 个用例，不依赖手机、不启动 scrcpy：
 
-- **纯函数**：scrcpy 参数拼装、`adb devices -l` / `wm size` 解析、退出码翻译、配置校验
-- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认核心路由都注册上了、`/status` 和 `/config` 返回结构正确、
-  跨站写操作会被 403 拦掉
+- **纯函数**：scrcpy 参数拼装、`adb devices -l` / `wm size` 解析、退出码翻译、配置校验、
+  锁屏判据 / 解锁坐标
+- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认核心路由（含 `/unlock`）都注册上了、`/status` 和 `/config`
+  返回结构正确、跨站写操作会被 403 拦掉
 
 CI 在 GitHub Actions 上跑 Node 20 / 22（ubuntu），推上去就能看到徽章状态。
 

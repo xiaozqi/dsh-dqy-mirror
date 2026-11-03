@@ -58,7 +58,7 @@ const P = '/dsh-dfy-mirror'
 
 test('apply 注册了核心路由', () => {
   assert.equal(typeof plugin.apply, 'function')
-  for (const p of ['/status', '/config', '/devices', '/start', '/stop', '/key', '/topmost', '/widget']) {
+  for (const p of ['/status', '/config', '/devices', '/start', '/stop', '/key', '/unlock', '/topmost', '/widget']) {
     assert.ok(routes.has(P + p), '缺少路由 ' + p)
   }
 })

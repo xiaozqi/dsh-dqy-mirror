@@ -69,3 +69,35 @@ v2 的结论：**画面只留一份（scrcpy 窗口），控制用 adb 按键**�
 - 启动判定不要等「窗口出现」这种不可靠信号：活过 `graceMs` 就算 running，之前退出就是 error。
 - 停止要有兜底超时，别让状态永远停在 `stopping`。
 - 日志写文件（`~/.dsh/phone-mirror.log`，1MB 轮转）——出问题时 `/log` 接口能直接看最后 120 行。
+
+## 六、别在宿主里做同步阻塞（2026-11-03）
+
+DSH 的 HTTP 服务和 Agent 跑在同一个 Node 事件循环里，**任何同步调用都会把整个界面一起按住**。
+这次实测出来两处：
+
+1. **`spawnSync(PhoneMirrorWidget.exe, ...)`**：这个 exe 光是启动就要 **1 秒左右**
+   （`--getsize` / `--topmost` 实测 1019~1106ms，没有窗口时也一样，是 .NET/WinForms 的启动开销）。
+   点「停止」会走 `--getsize`，点「置顶」会走 `--topmost`——每次都卡 1 秒；
+   进程要是没响应，`timeout: 4000` 就是卡 4 秒。改成异步 `spawn` + `await` 后不再阻塞。
+2. **`/status` 每次都扫 PATH + WinGet 目录找 adb/scrcpy**：同步 `existsSync`/`readdirSync`，
+   暖机状态一次 31ms；前端每秒轮询一次，冷启动时更久。现在按配置缓存 30 秒。
+
+另外，前端轮询也收紧了：2 秒一次、页面在后台不轮询、上一次没回来不发下一次。
+
+**结论**：宿主里只允许异步 IO；`spawnSync` / `readFileSync` / 大目录扫描别出现在请求路径上。
+
+## 七、一键解锁的判据（2026-11-03）
+
+这台华为 VCE-AL00（Android 10）上：
+
+| 状态 | `dumpsys window` | `dumpsys power` |
+| --- | --- | --- |
+| 锁屏 | `isStatusBarKeyguard=true`、`mDreamingLockscreen=true` | `mWakefulness=Awake` |
+| 解锁 | 两项都 `false` | `mWakefulness=Awake` |
+
+`mDreamingLockscreen` 必须是 `=true` 才算；解锁后它确实会变 false。
+**截图大小不可靠**：解锁后的桌面截图只有 9KB（老脚本用 `>50000` 会误判成锁屏）；
+但锁屏时 `screencap` 正好返回 **0 字节**（FLAG_SECURE），所以「0 字节 = 安全锁屏」是可信的。
+
+安全锁屏必须先 `input swipe` 上滑，PIN 键盘才会出现；少了这步 `input text` 打不进任何地方。
+

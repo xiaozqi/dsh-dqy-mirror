@@ -119,7 +119,17 @@ public class WidgetForm : Form
         AddKey("← 返回", 10, 150, 4);
         AddKey("⌂ 主屏", 126, 150, 3);
         AddKey("▣ 多任务", 10, 182, 187);
-        AddKey("☀ 唤醒", 126, 182, 224);
+        // 一键解锁：唤醒 + 上滑 + 输 PIN 全在宿主做，这里只发一个请求。
+        // 要 2~8 秒，所以放进线程池，别把窗口卡住。
+        AddButton("解锁", 126, 182, () =>
+        {
+            lblStatus.Text = "解锁中…";
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                Post("/dsh-dfy-mirror/unlock", "{}", 25000);
+                Sync();
+            });
+        });
 
         swPower.Click += (s, e) =>
         {
@@ -158,6 +168,11 @@ public class WidgetForm : Form
 
     void AddKey(string text, int x, int y, int code)
     {
+        AddButton(text, x, y, () => Post("/dsh-dfy-mirror/key", "{\"code\":" + code + "}"));
+    }
+
+    void AddButton(string text, int x, int y, Action onClick)
+    {
         var b = new Button
         {
             Text = text,
@@ -169,7 +184,7 @@ public class WidgetForm : Form
         };
         b.FlatAppearance.BorderSize = 0;
         b.FlatAppearance.MouseOverBackColor = Color.FromArgb(40, 45, 56);
-        b.Click += (s, e) => Post("/dsh-dfy-mirror/key", "{\"code\":" + code + "}");
+        b.Click += (s, e) => onClick();
         Controls.Add(b);
     }
 
@@ -208,14 +223,14 @@ public class WidgetForm : Form
             return reader.ReadToEnd();
     }
 
-    void Post(string path, string json)
+    void Post(string path, string json, int timeoutMs = 8000)
     {
         try
         {
             var req = (HttpWebRequest)WebRequest.Create(Base + path);
             req.Method = "POST";
             req.ContentType = "application/json";
-            req.Timeout = 8000;
+            req.Timeout = timeoutMs;
             req.Proxy = null;
             var bytes = Encoding.UTF8.GetBytes(json);
             req.ContentLength = bytes.Length;
