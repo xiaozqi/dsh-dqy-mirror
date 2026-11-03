@@ -80,6 +80,16 @@ test('GET /status 返回状态机和配置摘要', async () => {
   assert.equal('widgetRunning' in data, false)
 })
 
+test('改配置文件后 /status 自动重载（不用重启）', async () => {
+  const { writeFileSync } = await import('node:fs')
+  const { CONFIG_PATH } = await import('../lib/config.js')
+  writeFileSync(CONFIG_PATH, JSON.stringify({ serial: 'reload-test-1' }))
+  const handler = routes.get(P + '/status')
+  const res = fakeRes()
+  await handler({ method: 'GET', headers: { host: '127.0.0.1:1234' }, on() {}, pipe() {} }, res)
+  assert.equal(JSON.parse(res.body).serial, 'reload-test-1')
+})
+
 test('GET /config 返回配置和默认值', async () => {
   const handler = routes.get(P + '/config')
   const res = fakeRes()
