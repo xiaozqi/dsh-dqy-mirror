@@ -75,8 +75,13 @@
 1. `input keyevent 224` 点亮屏幕；
 2. `wm dismiss-keyguard` 撤掉非安全锁屏；
 3. 如果还在锁屏（`dumpsys window` 里 `isStatusBarKeyguard=true`）：
-   `input swipe` 上滑 → `input text <pin>` → `input keyevent 66`；
-4. 再读一次 keyguard 状态，把 `{ok, locked, awake, steps}` 返回给界面。
+   `input swipe` 上滑露出 PIN 键盘 → `input text <pin>`；
+4. **等 1.4 秒再看一次**：6 位 PIN 会自己提交，解锁了就直接结束，**不按回车**；
+   只有复核还是锁屏（校验慢 / ROM 不自动提交）才补 `input keyevent 66`；
+5. 最后再读一次 keyguard 状态，把 `{ok, locked, awake, steps}` 返回给界面。
+
+> 为什么抠这一下回车：PIN 自动提交后手机已经回到桌面，此时再按回车会激活桌面上
+> 选中的图标——实测会打开华为音乐。这是「解锁后误开 App」的根因。
 
 **已经解锁时不会上滑、也不会打字**（约 2 秒返回 `already:true`），
 所以不会把 PIN 打进正在用的 App 里。锁着的时候大约 8 秒。
