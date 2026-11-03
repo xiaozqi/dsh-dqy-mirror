@@ -1,64 +1,36 @@
 # dfy蓝色大肥鱼手机镜像 · dsh-dfy-mirror
 
-[![ci](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 给 [DSH](https://github.com/deepseek-ai) 加一个「手机投屏」：点一下，桌面上出现一个 **scrcpy 原生窗口**（可选置顶）。
 
-三个入口，同一套接口：
+两个入口，同一套接口：
 
 | 入口 | 位置 | 说明 |
 | --- | --- | --- |
-| **DSH 浮窗** | DSH 页面顶部正中 | 收起时是一颗小胶囊；点开在原地展开成「投屏 / 置顶 / 桌面窗」三个开关 + 返回/主屏/多任务/一键解锁 |
-| **桌面控制窗** | 桌面上一个独立小窗口 | 全局置顶、能拖到任何地方、能最小化；和浮窗同一套交互 |
+| **DSH 胶囊 / 面板** | 胶囊固定在 DSH 顶部正中 | 点胶囊展开：投屏 / 置顶 两个开关、返回/主屏/多任务、一键解锁；面板可以拖到任意位置 |
 | **设置 → 手机投屏** | DSH 个人头像 → 设置（`Ctrl+,`） | 选设备、起停、一键解锁、改参数 |
-
-> 为什么浮窗不能“拖出 DSH”？网页元素被裁剪在 Electron 窗口里，Windows 上拖不出去。
-> 要真正全局，只能是一个独立的操作系统窗口——也就是桌面控制窗。
 
 ## 长什么样
 
-| DSH 浮窗 | 桌面控制窗 |
-| --- | --- |
-| ![DSH 浮窗](docs/panel.png) | ![桌面控制窗](docs/widget.png) |
-
-设置 → 手机投屏（选设备、起停、各项开关）：
-
-![设置 → 手机投屏](docs/settings.png)
+![DSH 面板](docs/panel.png)
 
 ## 设计：一个进程，一个状态机
 
 | 角色 | 谁来做 |
 | --- | --- |
 | 画面 | **scrcpy 自己的窗口**（就是那个能点的窗口），可选 `--always-on-top` |
-| 控制 | 浮窗/桌面窗的按钮 → `adb shell input keyevent`；点窗口 = 直接操作手机（scrcpy 自带） |
+| 控制 | DSH 面板的按钮 → `adb shell input ...`；点窗口 = 直接操作手机（scrcpy 自带） |
 | 状态 | `idle → starting → running → stopping → idle`，异常一律落到 `error` |
 | 失败 | 进程退出就是失败，没有「进程死了状态还活着」 |
 
-**刻意放弃的东西**：面板里再嵌一份手机画面。那需要在 scrcpy 和浏览器之间架一条视频链
-（代理 + ffmpeg + MJPEG），上一版 90% 的崩溃、黑屏、假死都出在那条链上。
-取舍和踩过的坑都写在 [LESSONS.md](LESSONS.md)。
+**刻意放弃的东西**：
 
-## 桌面控制窗
-
-`bin/PhoneMirrorWidget.exe` 是一个 17KB 的 C# WinForms 程序（源码 `tools/widget.cs`），
-不是 PowerShell——后台进程就叫 `PhoneMirrorWidget.exe`，内存约 40MB。
-
-它同时是一个 CLI 小工具，宿主在用它做两件事：
-
-```bat
-PhoneMirrorWidget.exe --topmost on|off   :: 秒切 scrcpy 窗口置顶，不用重启 scrcpy
-PhoneMirrorWidget.exe --getsize          :: 把投屏窗口客户区尺寸写到 %TEMP%\dsh-phone-size.txt
-```
-
-重新编译（只有改界面时才需要，Windows 自带 .NET Framework，无需装 SDK）：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
-```
-
-`tools/widget.ps1` + `tools/widget.vbs` 是 **没有 exe 时的兜底**（PowerShell 版，内存约 117MB）。
-正常情况请用 exe。
+1. 面板里再嵌一份手机画面。那需要在 scrcpy 和浏览器之间架一条视频链
+   （代理 + ffmpeg + MJPEG），上一版 90% 的崩溃、黑屏、假死都出在那条链上。
+2. **桌面上的第二个控制窗**（v3.0 删掉）。它需要单独一个进程、一条心跳、
+   一堆「窗口关了 DSH 怎么同步」「没激活时第一次点击被 Windows 吃掉」的补丁，
+   而它能做的事 DSH 面板都能做。取舍见 [LESSONS.md](LESSONS.md)。
 
 ## 依赖
 
@@ -89,9 +61,8 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 | `adb` | `""` | 留空自动找 |
 | `scrcpy` | `""` | 留空自动找 |
 | `autoStart` | `false` | DSH 起来后自动投屏 |
-| `widget` | `true` | DSH 页面加载时自动拉起桌面控制窗 |
 | `alwaysOnTop` | `true` | 手机窗口置顶 |
-| `windowWidth` | `460` | 窗口内容宽度（物理像素）；拖过窗口大小后会在停止时自动记住 |
+| `windowWidth` | `460` | 窗口内容宽度（物理像素） |
 | `turnScreenOff` | `true` | 投屏时关手机屏幕（省电，窗口照常显示） |
 | `graceMs` | `1200` | scrcpy 活过这么久才算启动成功 |
 | `reconnect` | `true` | 意外掉线后重试（1.5s / 3s / 8s / 10s…，最多 6 次） |
@@ -99,7 +70,7 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 
 ## 一键解锁
 
-`POST /dsh-dfy-mirror/unlock`（浮窗、桌面控制窗、设置页的「解锁」按钮都调它）会：
+`POST /dsh-dfy-mirror/unlock`（DSH 面板、设置页的解锁按钮都调它）会：
 
 1. `input keyevent 224` 点亮屏幕；
 2. `wm dismiss-keyguard` 撤掉非安全锁屏；
@@ -110,46 +81,33 @@ powershell -ExecutionPolicy Bypass -File tools/build-widget.ps1
 **已经解锁时不会上滑、也不会打字**（约 2 秒返回 `already:true`），
 所以不会把 PIN 打进正在用的 App 里。锁着的时候大约 8 秒。
 
-入口：DSH 浮窗里是**整行的一键解锁按钮**（在返回/主屏/多任务下面），
-桌面控制窗和设置页也各有一个按钮；请求进行中按钮会变成「解锁中…」并禁用。
-
-## 状态同步
-
-| 方向 | 怎么同步 |
-| --- | --- |
-| 桌面窗 → DSH | 关窗时控制窗先发 `POST /widget/bye`，DSH 上的「桌面窗」开关下一次轮询（≤2 秒）就变灰；被强杀/崩溃没来得及发，4 秒没心跳也算关 |
-| DSH → 桌面窗 | 控制窗每秒拉一次 `/status`，投屏/置顶开关跟着 DSH 和状态机走 |
-| 桌面窗 ↔ DSH 的投屏状态 | 两边都读同一个 `/status`，任一边起停，另一边 1~2 秒内跟上 |
-
-DSH 浮窗的请求都带超时（GET 8 秒 / POST 20 秒）：宿主要是重启中或卡住，
-轮询不会因为一个永挂的 fetch 而停摆。
+面板里它是整行按钮：请求期间变「解锁中…」并禁用。
 
 ## 接口（全部同源可写，跨站写操作一律 403）
 
 | 方法 | 路径 | 作用 |
 | --- | --- | --- |
-| GET | `/dsh-dfy-mirror/status` | 状态机当前状态、错误、设备型号、`widgetRunning` |
+| GET | `/dsh-dfy-mirror/status` | 状态机当前状态、错误、设备型号 |
 | GET/POST | `/dsh-dfy-mirror/config` | 读/写配置 |
 | GET | `/dsh-dfy-mirror/devices` | `adb devices -l` |
 | POST | `/dsh-dfy-mirror/start` `/stop` | 起停投屏窗口（启动前会先清掉残留的 scrcpy，避免两个窗口抢端口） |
 | POST | `/dsh-dfy-mirror/key` | `{code}` 发送按键（4 返回 / 3 主屏 / 187 多任务） |
 | POST | `/dsh-dfy-mirror/unlock` | 一键解锁：唤醒 + 上滑 + 输 PIN |
-| POST | `/dsh-dfy-mirror/topmost` | `{on:true|false}` 切换置顶；有 exe 时**原生秒切**，否则重启窗口 |
-| POST | `/dsh-dfy-mirror/widget` | 拉起桌面控制窗 |
-| POST | `/dsh-dfy-mirror/widget/ping` | 控制窗心跳 `{pid}`（每秒一次），宿主据此判断开关状态 |
-| POST | `/dsh-dfy-mirror/widget/close` | 关掉控制窗（按上次心跳的 PID） |
-| POST | `/dsh-dfy-mirror/widget/bye` | 控制窗自己关的时候调用：只清状态，不杀进程 |
+| POST | `/dsh-dfy-mirror/topmost` | `{on:true|false}` 切换置顶（scrcpy 重启一次窗口，约 1~2 秒） |
 | GET | `/dsh-dfy-mirror/log` | 最后 120 行日志 |
+| GET | `/dsh-dfy-mirror/panel.js` | 面板脚本本身（宿主注入页面用） |
 
 ## 常见问题
 
 - **scrcpy 崩溃 `0xC0000005`**：通常是端口/驱动冲突。停掉再来一次，或换 USB / 换 `adb tcpip` 端口。
-- **窗口是黑的**：手机息屏或锁屏了。点「一键解锁」（浮窗/桌面窗/设置页都有）。
+- **窗口是黑的**：手机息屏或锁屏了。点「一键解锁」。
 - **点窗口没反应**：确认手机没锁屏；scrcpy 的鼠标输入需要窗口在前台。
-- **窗口太大/太小**：设置里的「窗口宽度」是物理像素，125% 缩放时 460 ≈ 368 逻辑像素。也可以直接拖窗口边缘，停止时会记住。
+- **窗口太大/太小**：设置里的「窗口宽度」是物理像素，125% 缩放时 460 ≈ 368 逻辑像素。
 - **掉线了**：默认自动重连（1.5 秒先试一次，之后 3/8/10 秒，最多 6 次）；也可以在设置里关掉。
-- **日志在哪**：`~/.dsh/dsh-dfy-mirror.log`（会滚动）。在浏览器里打开 `/dsh-dfy-mirror/log` 看最后 120 行，
-  中文不会乱码；用 Windows PowerShell 直接 `Get-Content` 看需要 `-Encoding UTF8`。
+- **胶囊/面板找不到了**：面板藏在屏幕外时会在窗口缩放后自动拉回来；实在找不到就刷新页面
+  （收起状态记在 localStorage，`?dpm=1` 可以强制展开）。
+- **日志在哪**：`~/.dsh/dsh-dfy-mirror.log`（会滚动）。在浏览器里打开 `/dsh-dfy-mirror/log`
+  看最后 120 行；用 Windows PowerShell 直接 `Get-Content` 看需要 `-Encoding UTF8`。
 
 ## 测试
 
@@ -157,15 +115,14 @@ DSH 浮窗的请求都带超时（GET 8 秒 / POST 20 秒）：宿主要是重�
 npm test        # 等价于 node --test
 ```
 
-23 个用例，不依赖手机、不启动 scrcpy：
+22 个用例，不依赖手机、不启动 scrcpy：
 
 - **纯函数**：scrcpy 参数拼装、`adb devices -l` / `wm size` 解析、退出码翻译、配置校验、
   锁屏判据 / 解锁坐标
-- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认核心路由（含 `/unlock`、`/widget/bye`）都注册上了、
-  `/status` 和 `/config` 返回结构正确、桌面窗 bye 之后 `widgetRunning` 立刻变 false、
-  跨站写操作会被 403 拦掉
+- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认核心路由都注册上了、桌面窗的遗留路由已经删干净、
+  `/status` 和 `/config` 返回结构正确、跨站写操作会被 403 拦掉
 
-CI 在 GitHub Actions 上跑 Node 20 / 22（ubuntu），推上去就能看到徽章状态。
+CI 在 GitHub Actions 上跑 Node 20 / 22（ubuntu）。
 
 ## License
 

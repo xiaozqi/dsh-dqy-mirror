@@ -101,19 +101,26 @@ DSH 的 HTTP 服务和 Agent 跑在同一个 Node 事件循环里，**任何同�
 
 安全锁屏必须先 `input swipe` 上滑，PIN 键盘才会出现；少了这步 `input text` 打不进任何地方。
 
-## 八、桌面窗「投屏」开关点不动（2026-11-03）
+## 八、桌面窗为什么被删掉（v3.0，2026-11-03）
 
-用户原话：「桌面窗控制不了投屏开关」。拆开是两个独立 bug：
+用户的原话是：「直接把桌面窗删了」。删之前它身上已经摞了这些补丁：
+
+- 独立进程（先是 PowerShell + VBS，后来是 17KB 的 C# WinForms）
+- 心跳 + `/widget/ping` + `/widget/bye` + 4 秒过期判定
+- 「窗口关了 DSH 开关怎么变灰」「DSH 关了窗口为什么还在」
+- CLI 双职责（`--topmost` / `--getsize`），其中 `spawnSync` 调它一次要 1 秒，直接卡住宿主
+- 位置记忆、防抖、单实例互斥……
+
+最后两个 bug 是压死它的原因：
 
 1. **开关永远发 `/start`。** `swPower.Click` 里写死了 `Post("/start")`，根本没看
-   `swPower.On`。所以「关」按下去只是发了一次启动，状态一刷新开关又弹回蓝色。
+   `swPower.On`。所以「关」按下去只是又发了一次启动，状态一刷新开关又弹回蓝色。
    正确做法：`On` 在 `MouseDown` 里已经翻成「点完之后想要的状态」，按它选 `/start` 或 `/stop`。
 
 2. **没激活的窗口，第一下点击被吃掉。** 实测：scrcpy 抢走焦点后点开关，
    控件连 `MouseDown` 都收不到，只收到一条 `WM_MOUSEACTIVATE`；点第二下才生效。
    这是 Windows 的「激活并吃掉」（`MA_ACTIVATEANDEAT`）。
-   修法：窗口加 `WS_EX_NOACTIVATE`（置顶遥控器本来就不该抢焦点），
-   并且 `WM_MOUSEACTIVATE` 返回 **`MA_NOACTIVATE`(3)**。
+   修法：窗口加 `WS_EX_NOACTIVATE`，并且 `WM_MOUSEACTIVATE` 返回 **`MA_NOACTIVATE`(3)**。
 
    ⚠️ 常量别记反：`MA_ACTIVATE=1`、`MA_ACTIVATEANDEAT=2`、`MA_NOACTIVATE=3`。
    我第一版写成了 `2`，等于亲手「激活并丢弃」，越修越点不动。加 `WS_EX_NOACTIVATE` 后
@@ -121,4 +128,9 @@ DSH 的 HTTP 服务和 Agent 跑在同一个 Node 事件循环里，**任何同�
 
 顺带：`/start` 在 WiFi 上要连 adb，最长 6~7 秒，点击处理必须丢进线程池，
 否则点一下窗口就冻住 7 秒——看起来又像「点不动」。
+
+**结论**：这个窗口能做的事（开关投屏/置顶、发按键、解锁），DSH 面板全能做，
+而它每多一个功能就多一条跨进程同步路径。v3.0 直接删除：`bin/`、`tools/` 整个目录，
+`/widget*` 四条路由、`widget` 配置项、面板里的「桌面窗」开关全部去掉。
+置顶改回「重启一次 scrcpy」（1~2 秒），这是删掉它唯一的功能损失。
 

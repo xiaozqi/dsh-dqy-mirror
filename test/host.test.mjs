@@ -56,52 +56,14 @@ function fakeRes() {
 
 const P = '/dsh-dfy-mirror'
 
-test('apply 注册了核心路由', () => {
+test('apply 注册了核心路由，且没有桌面窗的遗留路由', () => {
   assert.equal(typeof plugin.apply, 'function')
-  for (const p of [
-    '/status',
-    '/config',
-    '/devices',
-    '/start',
-    '/stop',
-    '/key',
-    '/unlock',
-    '/topmost',
-    '/widget',
-    '/widget/ping',
-    '/widget/close',
-    '/widget/bye',
-  ]) {
+  for (const p of ['/status', '/config', '/devices', '/start', '/stop', '/key', '/unlock', '/topmost', '/log', '/panel.js']) {
     assert.ok(routes.has(P + p), '缺少路由 ' + p)
   }
-})
-
-test('桌面窗 bye 之后 /status 立刻显示 widgetRunning=false', async () => {
-  const ping = routes.get(P + '/widget/ping')
-  const bye = routes.get(P + '/widget/bye')
-  const status = routes.get(P + '/status')
-  const req = (body) => ({
-    method: 'POST',
-    headers: { host: '127.0.0.1:1234' },
-    on(evt, cb) {
-      if (evt === 'data') cb(JSON.stringify(body))
-      if (evt === 'end') cb()
-    },
-    pipe() {},
-  })
-  const call = async (handler, request) => {
-    const res = fakeRes()
-    await handler(request, res)
-    return res
+  for (const p of ['/widget', '/widget/ping', '/widget/close', '/widget/bye']) {
+    assert.equal(routes.has(P + p), false, '桌面窗删了，不该再有 ' + p)
   }
-
-  await call(ping, req({ pid: 4242 }))
-  let res = await call(status, { method: 'GET', headers: { host: '127.0.0.1:1234' }, on() {}, pipe() {} })
-  assert.equal(JSON.parse(res.body).widgetRunning, true)
-
-  await call(bye, req({}))
-  res = await call(status, { method: 'GET', headers: { host: '127.0.0.1:1234' }, on() {}, pipe() {} })
-  assert.equal(JSON.parse(res.body).widgetRunning, false)
 })
 
 test('GET /status 返回状态机和配置摘要', async () => {
@@ -115,7 +77,7 @@ test('GET /status 返回状态机和配置摘要', async () => {
   assert.equal(typeof data.state, 'string')
   assert.equal(typeof data.running, 'boolean')
   assert.equal(typeof data.serial, 'string')
-  assert.equal(data.widgetRunning, false)
+  assert.equal('widgetRunning' in data, false)
 })
 
 test('GET /config 返回配置和默认值', async () => {
