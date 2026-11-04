@@ -60,22 +60,29 @@
 
 之后点「投屏」就出画面；面板里还有返回/主屏/多任务/解锁。
 
-> 给完全没接触过 adb 的人：**[新手指南（图文）](docs/新手指南.md)** —— 从"找不到胶囊"开始，一步一步到能投屏。
+> 给完全没接触过 adb 的人：**[新手指南（图文）](docs/新手指南.md)** —— 从装插件、插 USB 线开始，一步一步到能投屏。
 
-## 安装（手动，给没有插件市场的环境）
+## 安装
 
-1. 把本目录放到 `~/.dsh/plugins/dsh-dfy-mirror`
-2. 在 profile 的 `package.json` 里加：
+1. 把本目录放到 `~/.dsh/plugins/`（名字随意，脚本按 `package.json` 里的 name 登记）
+2. 双击目录里的 **`install-to-dsh.cmd`** —— 它会：
+   - 在 profile 的 `package.json` 里登记依赖和 bundle（改之前自动备份）
+   - 在 profile 的 `node_modules` 里建一个指向本目录的链接
+3. 完全退出 DSH（托盘也要退），重新打开
 
-   ```json
-   "dependencies": { "dsh-dfy-mirror": "file:C:/Users/<you>/.dsh/plugins/dsh-dfy-mirror" },
-   "dsh": { "profile": { "bundles": [ "...", "dsh-dfy-mirror" ] } }
-   ```
+脚本可以重复运行，已经装过就只提示、不重复改。
 
-3. 重启 DSH
+手动装也行（给没有脚本权限的环境）：在 profile 的 `package.json` 里加
+
+```json
+"dependencies": { "dsh-dfy-mirror": "file:C:/Users/<you>/.dsh/plugins/dsh-dfy-mirror" },
+"dsh": { "profile": { "bundles": [ "...", "dsh-dfy-mirror" ] } }
+```
+
+并在 `node_modules` 里建一个指向插件目录的 junction，然后重启 DSH。
 
 第一次用不用先改配置：展开面板，它会自己 `adb devices` 找手机，
-点「用它」就把串号写进配置。找不到会提示先 `adb connect` 或插 USB。
+点「用它」就把串号写进配置；缺 adb / scrcpy 时面板会直接给安装按钮。
 
 ## 配置（`~/.dsh/dsh-dfy-mirror.json`）
 
