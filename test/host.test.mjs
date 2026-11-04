@@ -58,12 +58,23 @@ const P = '/dsh-dfy-mirror'
 
 test('apply 注册了核心路由，且没有桌面窗的遗留路由', () => {
   assert.equal(typeof plugin.apply, 'function')
-  for (const p of ['/status', '/phone', '/config', '/devices', '/start', '/stop', '/key', '/unlock', '/lock', '/topmost', '/log', '/panel.js']) {
+  for (const p of ['/status', '/phone', '/config', '/devices', '/deps', '/deps/install', '/start', '/stop', '/key', '/unlock', '/lock', '/topmost', '/log', '/panel.js']) {
     assert.ok(routes.has(P + p), '缺少路由 ' + p)
   }
   for (const p of ['/widget', '/widget/ping', '/widget/close', '/widget/bye']) {
     assert.equal(routes.has(P + p), false, '桌面窗删了，不该再有 ' + p)
   }
+})
+
+test('GET /deps 返回 adb / scrcpy / winget 三项', async () => {
+  const handler = routes.get(P + '/deps')
+  const res = fakeRes()
+  await handler({ method: 'GET', headers: { host: '127.0.0.1:1234' }, on() {}, pipe() {} }, res)
+  const data = JSON.parse(res.body)
+  assert.equal(data.ok, true)
+  assert.equal(typeof data.adb.found, 'boolean')
+  assert.equal(typeof data.scrcpy.found, 'boolean')
+  assert.equal(typeof data.winget, 'boolean')
 })
 
 test('GET /status 返回状态机和配置摘要', async () => {

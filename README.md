@@ -44,10 +44,22 @@
 - [adb](https://developer.android.com/tools/releases/platform-tools)
 - [scrcpy](https://github.com/Genymobile/scrcpy) 2.x / 5.x
 
-两个都在 PATH 里最省事；也可以在设置里填绝对路径。任何开了 adb 调试的 Android 都能投，
-换手机 = 在设置里选设备。
+两个都不用提前装：面板会自检，缺了就用 winget 一键装（见下面「第一次用」）。
+也可以手动装好放 PATH，或者在配置里填绝对路径。任何开了 adb 调试的 Android 都能投。
 
-## 安装
+## 第一次用（从零开始）
+
+1. **装插件、打开面板**：胶囊在 DSH 顶部正中，点开。
+2. **缺依赖**：面板会显示「缺少 adb / scrcpy」，点「安装 adb」「安装 scrcpy」——
+   宿主用 `winget install --id Google.PlatformTools / Genymobile.scrcpy` 装，
+   要几分钟，弹 UAC 就点「是」。装完自动重新检测（没有 winget 的机器会提示手动装）。
+3. **连手机**：手机上打开「开发者选项 → USB 调试」，插 USB，手机上点「允许调试」；
+   面板里点「重新查找」→「用它」。没授权时面板会说「手机插着，但还没授权」，不会只说找不到。
+4. **（可选）设 PIN**：想用「一键解锁」，把手机 PIN 填进 `~/.dsh/dsh-dfy-mirror.json` 的 `pin`。
+
+之后点「投屏」就出画面；面板里还有返回/主屏/多任务/解锁。
+
+## 安装（手动，给没有插件市场的环境）
 
 1. 把本目录放到 `~/.dsh/plugins/dsh-dfy-mirror`
 2. 在 profile 的 `package.json` 里加：
