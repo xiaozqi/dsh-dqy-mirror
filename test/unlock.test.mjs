@@ -2,7 +2,7 @@
 // 样本就是这台华为 VCE-AL00 上真实 dumpsys 抓下来的关键行。
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { isLocked, isAwake, unlockScript } from '../lib/unlock.js'
+import { isLocked, isAwake, isSecure, unlockScript } from '../lib/unlock.js'
 
 const LOCKED = `
     mShowingDream=false mDreamingLockscreen=true mDreamingSleepToken=null
@@ -53,4 +53,19 @@ test('解锁脚本是一条命令：分支和等待都在手机端', () => {
 
 test('PIN 里的数字直接进脚本，不做额外转义', () => {
   assert.ok(unlockScript('123456').includes('input text 123456'))
+})
+
+test('没有 PIN 的脚本只撤锁屏，不会乱打字', () => {
+  const s = unlockScript('')
+  assert.ok(s.includes('dismiss-keyguard'))
+  assert.ok(!s.includes('input text'))
+  assert.equal(s.split('input keyevent 66').length - 1, 0)
+  assert.ok(s.includes('FINAL:'))
+})
+
+test('isSecure 只认 KeyguardServiceDelegate 的 secure=，不误伤 mSimSecure', () => {
+  assert.equal(isSecure('      secure=true\n      dreaming=false'), true)
+  assert.equal(isSecure('      secure=false'), false)
+  assert.equal(isSecure('        mSimSecure=false'), null)
+  assert.equal(isSecure(''), null)
 })
