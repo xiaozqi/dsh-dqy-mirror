@@ -42,6 +42,10 @@
 ### Fixed
 
 - README 里「换平台只改一处」和「22 个用例」两处与代码不符的描述。
+- **解锁回归（4.6.0 开发中引入，已修）**：`KEYGUARD` 里加的第二条 `dumpsys window policy`
+  没包在 `{ ...; }` 里，导致 `${KEYGUARD} | grep -q ...` 的管道只接到第二条命令上，
+  判断永远为假 —— 表现是「撤锁屏后跳过上滑和输 PIN，最后报 PIN 可能不对」。
+  已用花括号分组，并补了一个真 shell 桩测试（`test/unlock-script.test.mjs`）防复发。
 
 ## 更早
 
