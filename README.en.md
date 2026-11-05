@@ -43,6 +43,21 @@ Both can be installed from the panel with one click (winget) — no manual setup
 
 The capsule ("手机") appears at the top center of the DSH window.
 
+## Settings
+
+The ⚙ button in the panel opens a settings drawer (changes apply immediately):
+
+- **Connection**: current device + transport (USB / wireless), **switch to wireless**,
+  device scan/switch, disconnect
+- **Window**: width slider, always-on-top, turn screen off, audio, auto-start with DSH
+- **Unlock**: PIN state, set / clear
+- **Advanced**: reconnect, `graceMs`
+- **Diagnostics**: versions, **copy diagnostics** (ready to paste into an issue),
+  view log, reset to defaults
+
+Switching to wireless runs `adb tcpip 5555` → reads the phone's `wlan0` IPv4 →
+`adb connect` → verifies → stores the new serial, then restarts mirroring.
+
 ## Configuration
 
 `~/.dsh/dsh-dfy-mirror.json` — hot-reloaded on change, no restart needed.
@@ -83,10 +98,16 @@ same-origin `/panel.js`).
 | GET | `/phone` | `{ok, locked, awake, supported}` |
 | GET/POST | `/config` | read (PIN masked) / write |
 | GET | `/devices` | `adb devices -l` |
+| GET | `/deps` | adb / scrcpy presence, paths, versions |
+| POST | `/deps/install` | `{what:'adb'|'scrcpy'}` via winget |
 | POST | `/start` `/stop` | start / stop the scrcpy window |
 | POST | `/key` | `{code}` keyevent (4 back, 3 home, 187 recents) |
 | POST | `/unlock` `/lock` | unlock / lock |
 | POST | `/topmost` | `{on: true|false}` |
+| POST | `/wireless` | `{ip?}` switch the current USB device to wireless |
+| POST | `/disconnect` | disconnect wireless and stop mirroring |
+| POST | `/reset` | restore defaults (keeps the current serial, clears PIN) |
+| GET | `/diagnostics` | issue-ready diagnostic text (PIN masked) |
 | GET | `/log` | last 120 log lines |
 
 ## Known limitations
@@ -108,7 +129,7 @@ same-origin `/panel.js`).
 npm test
 ```
 
-35 unit/smoke tests, no phone and no scrcpy required. CI runs Ubuntu + Windows on Node 20/22.
+38 unit/smoke tests, no phone and no scrcpy required. CI runs Ubuntu + Windows on Node 20/22.
 
 ## License
 

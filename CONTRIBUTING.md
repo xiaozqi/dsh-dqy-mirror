@@ -15,7 +15,7 @@ npm test            # node --test
 node test/args.test.mjs   # 单个文件，调试时更快
 ```
 
-35 个用例都不需要手机，也不会启动 scrcpy。CI 在 Ubuntu + Windows × Node 20/22 上跑同一套。
+38 个用例都不需要手机，也不会启动 scrcpy。CI 在 Ubuntu + Windows × Node 20/22 上跑同一套。
 
 ## 代码结构
 

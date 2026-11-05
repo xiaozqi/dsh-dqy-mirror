@@ -3,6 +3,33 @@
 本项目从 4.6.0 开始按 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 记录，
 版本号遵循 [SemVer](https://semver.org/lang/zh-CN/)。
 
+## [4.7.0] - 2026-11-05
+
+给普通用户用的「设置」抽屉，以及减少求助的诊断工具。
+
+### Added
+
+- **面板里的设置抽屉**（标题栏齿轮）：分「连接 / 窗口 / 解锁 / 高级 / 诊断」五组，
+  改完即时生效（宿主本来就是 mtime 热加载），不用再手改 JSON。
+  - 窗口：宽度滑块、置顶、投屏时关手机屏、传输声音、随 DSH 启动自动投屏
+  - 高级：掉线自动重连、启动判定 `graceMs`
+- **一键切无线**：USB 连着时点「改用无线」，宿主自动 `adb tcpip 5555` → 从手机读
+  `wlan0` 的 IPv4 → `adb connect` → 验证并把新串号写回配置；读不到 IP 时让你手动填。
+  切换过程中会先停投屏，切完自动拉起。
+- **设备列表**：设置里扫描并直接切换设备，不用再回引导页。
+- **断开连接**：无线连接会 `adb disconnect`，同时停掉投屏。
+- **诊断**：一键复制「插件版本 / 系统 / 设备 / adb+scrcpy 版本 / PIN 是否设置 /
+  锁屏判据原始输出 / 配置（PIN 已打码）/ 最近 40 行日志」，直接贴进 issue。
+- **看日志**：设置里直接展开最后 120 行，不用再去翻文件或拼 URL。
+- **恢复默认设置**：保留当前连接的手机，其余回默认（包括清掉 PIN）。
+- `/deps` 现在返回 adb / scrcpy 的版本号与插件版本；`/status` 增加
+  `version`、`wireless`、`audio`、`turnScreenOff`、`windowWidth`。
+- 新增接口：`POST /wireless`、`POST /disconnect`、`POST /reset`、`GET /diagnostics`。
+
+### Security
+
+- 新增的写接口同样走 `POST + 同源 + x-dpm-token`；`/diagnostics` 里的 PIN 已打码。
+
 ## [4.6.0] - 2026-11-05
 
 开源前的加固与整理。

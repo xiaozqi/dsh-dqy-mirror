@@ -81,7 +81,7 @@ const AUTH = { 'x-dpm-token': TOKEN }
 
 test('apply 注册了核心路由，且没有桌面窗的遗留路由', () => {
   assert.equal(typeof plugin.apply, 'function')
-  for (const p of ['/status', '/phone', '/config', '/devices', '/deps', '/deps/install', '/start', '/stop', '/key', '/unlock', '/lock', '/topmost', '/log', '/panel.js']) {
+  for (const p of ['/status', '/phone', '/config', '/devices', '/deps', '/deps/install', '/start', '/stop', '/key', '/unlock', '/lock', '/topmost', '/log', '/panel.js', '/wireless', '/disconnect', '/reset', '/diagnostics']) {
     assert.ok(routes.has(P + p), '缺少路由 ' + p)
   }
   for (const p of ['/widget', '/widget/ping', '/widget/close', '/widget/bye']) {
@@ -102,6 +102,8 @@ test('GET /deps 返回 adb / scrcpy / winget 三项', async () => {
   assert.equal(typeof data.adb.found, 'boolean')
   assert.equal(typeof data.scrcpy.found, 'boolean')
   assert.equal(typeof data.winget, 'boolean')
+  assert.equal(typeof data.adb.version, 'string')
+  assert.match(data.plugin, /^\d+\.\d+\.\d+/)
 })
 
 test('GET /status 返回状态机和配置摘要', async () => {
@@ -142,7 +144,7 @@ test('跨站写操作被 403 拦掉', async () => {
 })
 
 test('改状态的接口拒绝 GET（堵掉 <img src=.../unlock>）', async () => {
-  for (const p of ['/start', '/stop', '/unlock', '/lock', '/key', '/topmost']) {
+  for (const p of ['/start', '/stop', '/unlock', '/lock', '/key', '/topmost', '/wireless', '/disconnect', '/reset']) {
     const res = await call(p)
     assert.equal(res.status, 405, p + ' 只应该接受 POST')
   }
@@ -179,4 +181,24 @@ test('改 serial 不会把已有的 PIN 冲掉', async () => {
   const disk = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'))
   assert.equal(disk.serial, '10.0.0.2:5555')
   assert.equal(disk.pin, '123456')
+})
+
+test('GET /diagnostics 带版本号，但不会泄露 PIN', async () => {
+  const res = await call('/diagnostics')
+  assert.equal(res.status, 200)
+  const d = JSON.parse(res.body)
+  assert.equal(d.ok, true)
+  assert.match(d.text, /插件版本/)
+  assert.match(d.text, /PIN: 已设置/)
+  assert.equal(d.text.includes('123456'), false)
+})
+
+test('POST /reset 恢复默认，但保留连接的手机', async () => {
+  const res = await call('/reset', { method: 'POST', headers: AUTH, body: {} })
+  assert.equal(res.status, 200)
+  const data = JSON.parse(res.body)
+  assert.equal(data.config.pin, '')
+  assert.equal(data.config.serial, '10.0.0.2:5555')
+  assert.equal(data.config.windowWidth, 460)
+  assert.equal(data.config.audio, false)
 })

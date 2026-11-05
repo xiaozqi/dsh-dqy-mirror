@@ -108,10 +108,29 @@
 第一次用不用先改配置：展开面板，它会自己 `adb devices` 找手机，
 点那台设备就把串号写进配置；缺 adb / scrcpy 时面板会直接给安装按钮。
 
+## 设置（面板标题栏的齿轮）
+
+常用项都在这里改，改完即时生效（宿主按文件 mtime 热加载），不用重启：
+
+| 分组 | 内容 |
+| --- | --- |
+| 连接 | 当前设备与连接方式（USB / 无线）、**改用无线**、设备扫描与切换、断开 |
+| 窗口 | 宽度滑块、置顶、投屏时关手机屏、传输声音、随 DSH 启动自动投屏 |
+| 解锁 | PIN 状态、设置 / 清除 |
+| 高级 | 掉线自动重连、启动判定 `graceMs` |
+| 诊断 | 版本号、**复制诊断信息**、看日志、恢复默认设置 |
+
+**一键切无线**：手机用 USB 连着时点「改用无线」，插件会自己执行
+`adb tcpip 5555` → 读手机的 `wlan0` IPv4 → `adb connect` → 验证 → 把新串号写回配置，
+然后把投屏重新拉起来。读不到 IP（比如手机没连 WiFi）时会弹框让你手填。
+
+**复制诊断信息**会拼好「插件版本 / 系统 / 设备 / adb+scrcpy 版本 / PIN 是否设置 /
+锁屏判据原始输出 / 配置（PIN 打码）/ 最近 40 行日志」，提 issue 时直接粘贴即可。
+
 ## 配置（`~/.dsh/dsh-dfy-mirror.json`）
 
-没有设置页，直接改这个 JSON。宿主每次请求状态时比一下文件 mtime，改了自动重载，
-**不用重启 DSH**（改完等下一次轮询，或者刷新页面）：
+设置抽屉覆盖了大部分场景；这个 JSON 仍然可以直接改（宿主每次请求比 mtime，改了自动重载，
+**不用重启 DSH**）。改坏了也不至于崩：所有值都会被收敛，未知字段丢掉：
 
 | 键 | 默认 | 说明 |
 | --- | --- | --- |
@@ -168,15 +187,21 @@ token 每次宿主启动随机生成，只出现在同源能读到的 `/panel.js
 
 | 方法 | 路径 | 作用 |
 | --- | --- | --- |
-| GET | `/status` | 状态机当前状态、错误、设备型号 |
+| GET | `/status` | 状态机当前状态、错误、设备型号、版本、是否无线 |
 | GET | `/phone` | 手机现在锁没锁：`{ok, locked, awake, supported}`（缓存 2 秒） |
 | GET/POST | `/config` | 读（PIN 已打码）/ 写配置（写要 token） |
 | GET | `/devices` | `adb devices -l` |
+| GET | `/deps` | adb / scrcpy 是否装、路径、版本；winget 是否可用 |
+| POST | `/deps/install` | `{what:'adb'|'scrcpy'}` 用 winget 装 |
 | POST | `/start` `/stop` | 起停投屏窗口（启动前会先清掉**同名**的残留 scrcpy，不动你自己开的） |
 | POST | `/key` | `{code}` 发送按键（4 返回 / 3 主屏 / 187 多任务） |
 | POST | `/unlock` | 一键解锁：唤醒 + 上滑 + 输 PIN |
 | POST | `/lock` | 锁屏：`KEYCODE_SLEEP`，返回锁完后的 `{locked, awake}` |
 | POST | `/topmost` | `{on:true|false}` 切换置顶（scrcpy 重启一次窗口，约 1~2 秒） |
+| POST | `/wireless` | `{ip?}` 把当前 USB 设备切成无线连接，返回 `{serial, ip, restarted}` |
+| POST | `/disconnect` | 断开无线连接并停掉投屏（串号保留） |
+| POST | `/reset` | 恢复默认设置（保留 current serial，清掉 PIN） |
+| GET | `/diagnostics` | 返回一段可直接贴进 issue 的诊断文本（PIN 已打码） |
 | GET | `/log` | 最后 120 行日志 |
 | GET | `/panel.js` | 面板脚本本身（宿主注入页面用，token 在这里） |
 
@@ -214,12 +239,15 @@ token 每次宿主启动随机生成，只出现在同源能读到的 `/panel.js
 npm test        # 等价于 node --test
 ```
 
-**35 个用例**，不依赖手机、不启动 scrcpy：
+**38 个用例**，不依赖手机、不启动 scrcpy：
 
 - **纯函数**：scrcpy 参数拼装（含 `audio`）、`adb devices -l` / `wm size` 解析、退出码翻译、
   配置校验、锁屏判据（含 Android 12+ 写法、判据缺失时返回 null）
-- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认路由注册、`/status` / `/config` 结构、
-  GET 写接口返回 405、缺 token 返回 403、跨站写 403、PIN 不回显且不丢
+- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认路由注册、`/status` / `/config` / `/deps` 结构、
+  GET 写接口返回 405、缺 token 返回 403、跨站写 403、PIN 不回显且不丢、
+  诊断文本不含 PIN、`/reset` 保留设备
+- **解锁脚本**：用桩命令在真 `sh` 里跑完整段脚本，确认真的走到「上滑 + 输 PIN」分支
+  （纯字符串断言拦不住管道被截断这类问题）
 
 CI 在 GitHub Actions 上跑 Ubuntu + Windows × Node 20 / 22。
 
