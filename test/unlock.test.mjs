@@ -1,8 +1,8 @@
 // 一键解锁的纯逻辑测试：不需要手机，也不跑 adb。
-// 样本就是这台华为 VCE-AL00 上真实 dumpsys 抓下来的关键行。
+// 样本是这台华为 VCE-AL00（Android 10）上真实 dumpsys 抓下来的关键行。
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { isLocked, isAwake, isSecure, unlockScript } from '../lib/unlock.js'
+import { isLocked, isAwake, isSecure, keyguardSignals, unlockScript } from '../lib/unlock.js'
 
 const LOCKED = `
     mShowingDream=false mDreamingLockscreen=true mDreamingSleepToken=null
@@ -30,16 +30,29 @@ test('mDreamingLockscreen / mShowingLockscreen 任一为 true 也算锁屏', () 
   assert.equal(isLocked('mDreamingLockscreen=false'), false)
 })
 
-test('空输出 / 没抓到关键行时不误判成锁屏', () => {
-  assert.equal(isLocked(''), false)
-  assert.equal(isLocked(null), false)
-  assert.equal(isLocked('mCurrentFocus=Window{abc u0 com.example}'), false)
+test('Android 12+ 的写法也认：mKeyguardShowing / KeyguardServiceDelegate', () => {
+  assert.equal(isLocked('mKeyguardShowing=true'), true)
+  assert.equal(isLocked('KeyguardServiceDelegate\n  showing=true\n  secure=true'), true)
+  assert.equal(isLocked('mKeyguardShowing=false'), false)
 })
 
-test('isAwake 只认 mWakefulness=Awake', () => {
+test('读不到任何判据字段时返回 null，而不是假装已解锁', () => {
+  assert.equal(isLocked(''), null)
+  assert.equal(isLocked(null), null)
+  assert.equal(isLocked('mCurrentFocus=Window{abc u0 com.example}'), null)
+})
+
+test('keyguardSignals 数的是「系统给了几种判据」', () => {
+  assert.equal(keyguardSignals(''), 0)
+  assert.ok(keyguardSignals(LOCKED) >= 2)
+  assert.ok(keyguardSignals('mWakefulness=Awake') >= 1)
+  assert.equal(keyguardSignals('mCurrentFocus=Window{abc}'), 0)
+})
+
+test('isAwake 只认 mWakefulness=Awake，读不到返回 null', () => {
   assert.equal(isAwake(LOCKED), true)
   assert.equal(isAwake('mWakefulness=Asleep'), false)
-  assert.equal(isAwake(''), false)
+  assert.equal(isAwake(''), null)
 })
 
 test('解锁脚本是一条命令：分支和等待都在手机端', () => {

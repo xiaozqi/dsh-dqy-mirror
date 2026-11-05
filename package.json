@@ -1,7 +1,7 @@
 {
   "name": "dsh-dfy-mirror",
-  "version": "4.5.0",
-  "description": "dfy蓝色大肥鱼手机镜像：给 DSH 加手机投屏，scrcpy 原生窗口当画面，DSH 顶部胶囊一个入口，一个进程一个状态机。",
+  "version": "4.6.0",
+  "description": "Android screen mirroring for DeepSeek Harness: one scrcpy window, one state machine, one capsule in the DSH header. Windows only.",
   "type": "module",
   "license": "MIT",
   "author": "xiaozqi",
@@ -18,8 +18,16 @@
     "dsh-plugin",
     "android",
     "scrcpy",
-    "mirror"
+    "mirror",
+    "adb",
+    "screen-mirroring"
   ],
+  "os": [
+    "win32"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
@@ -33,10 +41,15 @@
     "install-to-dsh.ps1",
     "cordis.patch.yml",
     "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
     "LESSONS.md",
     "LICENSE"
   ],
   "scripts": {
+    "check": "node --check lib/index.js && node --check lib/panel.js && node --check lib/session.js && node --check lib/unlock.js && node --check lib/config.js && node --check lib/args.js && node --check lib/exec.js",
     "test": "node --test"
   },
   "dsh": {

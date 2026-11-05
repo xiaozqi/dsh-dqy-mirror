@@ -1,0 +1,31 @@
+name: 功能建议
+description: 想要新能力或改行为
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        先看看 README 的「已知限制」和「刻意放弃的东西」——有些功能是明确不做的
+        （比如在面板里嵌视频流）。如果你的建议属于那两类，欢迎说明为什么值得重新考虑。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解决什么问题
+      description: 描述场景，不要只写「加个截图按钮」
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: 你设想的做法
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 现在怎么绕过去的
+    validations:
+      required: false

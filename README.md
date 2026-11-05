@@ -1,8 +1,13 @@
-# dfy蓝色大肥鱼手机镜像 · dsh-dfy-mirror
+# dfy 蓝色大肥鱼手机镜像 · dsh-dfy-mirror
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![ci](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml)
 
 给 [DSH](https://github.com/deepseek-ai) 加一个「手机投屏」：点一下，桌面上出现一个 **scrcpy 原生窗口**（可选置顶）。
+
+> **平台**：Windows 10 / 11。macOS / Linux 没有适配，原因是实现里用了 `taskkill`、`winget`、`PATHEXT` 这些 Windows 专有的东西（见「已知限制」）。
+>
+> English README → [README.en.md](README.en.md)
 
 一个入口：
 
@@ -38,14 +43,32 @@
    一堆「窗口关了 DSH 怎么同步」「没激活时第一次点击被 Windows 吃掉」的补丁，
    而它能做的事 DSH 面板都能做。取舍见 [LESSONS.md](LESSONS.md)。
 
-## 依赖
+## 依赖与平台
 
-- Windows（用了 `taskkill`；换平台改 `lib/session.js` 里一处）
-- [adb](https://developer.android.com/tools/releases/platform-tools)
+- **Windows 10 / 11**（`taskkill`、`winget`、`%LOCALAPPDATA%`、`PATHEXT`）
+- [adb](https://developer.android.com/tools/releases/platform-tools)（platform-tools）
 - [scrcpy](https://github.com/Genymobile/scrcpy) 2.x / 5.x
 
 两个都不用提前装：面板会自检，缺了就用 winget 一键装（见下面「第一次用」）。
 也可以手动装好放 PATH，或者在配置里填绝对路径。任何开了 adb 调试的 Android 都能投。
+
+## 已知限制
+
+这些是「明确不支持」，不是 bug：
+
+- **只在 Windows 上验证过**。宿主里 6 处 Windows 专有调用：`PATHEXT` 搜 PATH、
+  `%LOCALAPPDATA%` 找 SDK / WinGet、`taskkill /T` 杀进程树、`winget` 装依赖、
+  按窗口标题清理残留、`.exe` 后缀。要移植到 macOS / Linux，得先把这些抽成平台层。
+- **解锁只支持数字 PIN**，不支持图案 / 混合密码；实现是「上滑 → 输 PIN」，
+  图案锁屏上会用不了。
+- **锁屏判据依赖 `dumpsys` 字段**，在 Android 10（华为 VCE-AL00）上实测过；
+  Android 12+ 已补充 `mKeyguardShowing` / `KeyguardServiceDelegate` 的匹配，
+  但**没有真机验证**。读不到判据时插件会明确报错，不会瞎按。
+- **同一时间只投一台手机**。多台在线时面板会让你选，但不会同时开两个窗口。
+- **音频默认关闭**（`audio: false`）。要声音就在配置里打开，会增加启动时间和 CPU。
+- **只在 localhost 用**。DSH Web 如果绑到 `0.0.0.0` 或做了端口转发，
+  同网段的人就能控制你的手机（接口本身没有账号体系，只有同源 + token 防护）。
+- **不做**：截图/录屏、文件拖拽、剪贴板同步、音量/电源键、旋转、全屏。
 
 ## 第一次用（从零开始）
 
@@ -54,7 +77,7 @@
    宿主用 `winget install --id Google.PlatformTools / Genymobile.scrcpy` 装，
    要几分钟，弹 UAC 就点「是」。装完自动重新检测（没有 winget 的机器会提示手动装）。
 3. **连手机**：手机上打开「开发者选项 → USB 调试」，插 USB，手机上点「允许调试」；
-   面板里点「重新查找」→「用它」。没授权时面板会说「手机插着，但还没授权」，不会只说找不到。
+   面板里点「重新查找」→ 选你的手机。没授权时面板会说「手机插着，但还没授权」，不会只说找不到。
 4. **解锁**：手机没设锁屏密码就直接解锁；设了密码的话，第一次点「解锁」面板会就地要一次 PIN，
    填完写进配置，以后不再问。
 
@@ -82,7 +105,7 @@
 并在 `node_modules` 里建一个指向插件目录的 junction，然后重启 DSH。
 
 第一次用不用先改配置：展开面板，它会自己 `adb devices` 找手机，
-点「用它」就把串号写进配置；缺 adb / scrcpy 时面板会直接给安装按钮。
+点那台设备就把串号写进配置；缺 adb / scrcpy 时面板会直接给安装按钮。
 
 ## 配置（`~/.dsh/dsh-dfy-mirror.json`）
 
@@ -98,9 +121,13 @@
 | `alwaysOnTop` | `true` | 手机窗口置顶（默认开） |
 | `windowWidth` | `460` | 窗口内容宽度（物理像素） |
 | `turnScreenOff` | `true` | 投屏时关手机屏幕（省电，窗口照常显示） |
+| `audio` | `false` | 把手机声音一起传过来（`--no-audio` 的反面） |
 | `graceMs` | `1200` | scrcpy 活过这么久才算启动成功 |
 | `reconnect` | `true` | 意外掉线后重试（1.5s / 3s / 8s / 10s…，最多 6 次） |
 | `pin` | `""` | 锁屏 PIN；**空 = 还没提供**，解锁时面板会就地要一次。只收 4~12 位数字 |
+
+> `pin` 是**明文**存在这个文件里的（解锁要把它送进 `adb shell input text`）。
+> 公共电脑上别开；介意的话就别配 PIN，每次解锁时手输。
 
 ## 一键解锁 / 锁屏
 
@@ -128,35 +155,49 @@
 | 已解锁 | 绿色「已解锁 · 点一下锁屏」 | `POST /lock` 锁屏 |
 | 锁屏（亮屏） | 蓝色「一键解锁 · 锁屏中」 | 解锁 |
 | 息屏 | 蓝色「一键解锁 · 息屏」 | 唤醒并解锁 |
-| 请求中 | 「解锁中…」/「锁屏中…」，禁用 | — |
+| 读不到判据 | 蓝色「一键解锁」 | 会明确报「读不到锁屏状态」 |
 
 锁屏走 `KEYCODE_SLEEP(223)`：单向关屏（不会把黑着的屏幕点亮），有安全锁时关屏即锁屏，锁完会复核一次状态。
 
-## 接口（全部同源可写，跨站写操作一律 403）
+## 接口
+
+全部挂在 `/dsh-dfy-mirror` 下。**改状态的接口只接受 `POST`，并且要求同源 + `x-dpm-token`**；
+token 每次宿主启动随机生成，只出现在同源能读到的 `/panel.js` 里（这就是面板脚本的意义，
+也是为什么跨站页面既读不到、也猜不到）。
 
 | 方法 | 路径 | 作用 |
 | --- | --- | --- |
-| GET | `/dsh-dfy-mirror/status` | 状态机当前状态、错误、设备型号 |
-| GET | `/dsh-dfy-mirror/phone` | 手机现在锁没锁：`{ok, locked, awake}`（缓存 2 秒） |
-| GET/POST | `/dsh-dfy-mirror/config` | 读/写配置 |
-| GET | `/dsh-dfy-mirror/devices` | `adb devices -l` |
-| POST | `/dsh-dfy-mirror/start` `/stop` | 起停投屏窗口（启动前会先清掉残留的 scrcpy，避免两个窗口抢端口） |
-| POST | `/dsh-dfy-mirror/key` | `{code}` 发送按键（4 返回 / 3 主屏 / 187 多任务） |
-| POST | `/dsh-dfy-mirror/unlock` | 一键解锁：唤醒 + 上滑 + 输 PIN |
-| POST | `/dsh-dfy-mirror/lock` | 锁屏：`KEYCODE_SLEEP`，返回锁完后的 `{locked, awake}` |
-| POST | `/dsh-dfy-mirror/topmost` | `{on:true|false}` 切换置顶（scrcpy 重启一次窗口，约 1~2 秒） |
-| GET | `/dsh-dfy-mirror/log` | 最后 120 行日志 |
-| GET | `/dsh-dfy-mirror/panel.js` | 面板脚本本身（宿主注入页面用） |
+| GET | `/status` | 状态机当前状态、错误、设备型号 |
+| GET | `/phone` | 手机现在锁没锁：`{ok, locked, awake, supported}`（缓存 2 秒） |
+| GET/POST | `/config` | 读（PIN 已打码）/ 写配置（写要 token） |
+| GET | `/devices` | `adb devices -l` |
+| POST | `/start` `/stop` | 起停投屏窗口（启动前会先清掉**同名**的残留 scrcpy，不动你自己开的） |
+| POST | `/key` | `{code}` 发送按键（4 返回 / 3 主屏 / 187 多任务） |
+| POST | `/unlock` | 一键解锁：唤醒 + 上滑 + 输 PIN |
+| POST | `/lock` | 锁屏：`KEYCODE_SLEEP`，返回锁完后的 `{locked, awake}` |
+| POST | `/topmost` | `{on:true|false}` 切换置顶（scrcpy 重启一次窗口，约 1~2 秒） |
+| GET | `/log` | 最后 120 行日志 |
+| GET | `/panel.js` | 面板脚本本身（宿主注入页面用，token 在这里） |
+
+错误码约定：跨站 `403`、方法不对 `405`、请求体超过 200KB `413`。
+
+## 安全
+
+安全模型、报告方式和已知边界都在 [SECURITY.md](SECURITY.md)。一句话：
+**它把「控制手机」的能力开在本地 HTTP 上**，所以只应该在 localhost 用；
+写操作有同源 + POST + token 三重校验，但接口本身没有账号体系。
 
 ## 常见问题
 
 - **面板说「未配置」**：它没从配置里读到串号。点「查找手机」，会自动列出 `adb devices` 里在线的设备，
-  点「用它」写进配置；没有设备就先 `adb connect ip:5555` 或插 USB。
+  点一台写进配置；没有设备就先 `adb connect ip:5555` 或插 USB。
 - **手机 IP 变了**（热点 DHCP 重新分配）：配置里的串号不在线、而当前只连着一台设备时，
-  插件会自动用那台，并在下次启动投屏时把新串号写回配置。
+  插件会自动用那台，并在下次启动投屏时把新串号写回配置；**多台在线时不再自动挑**，面板会让你选。
 - **点投屏说「手机不在线」**：3 秒内就返回了（先查 `adb devices`，不在线就不再等 6 秒超时）。
 - **scrcpy 崩溃 `0xC0000005`**：通常是端口/驱动冲突。停掉再来一次，或换 USB / 换 `adb tcpip` 端口。
 - **窗口是黑的**：手机息屏或锁屏了。点「一键解锁」。
+- **解锁报「读不到锁屏状态」**：这台 Android 的 `dumpsys` 格式不认识，解锁会主动跳过而不是瞎按。
+  欢迎提 issue 带上 `adb shell dumpsys window | grep -i keyguard` 的输出。
 - **点窗口没反应**：确认手机没锁屏；scrcpy 的鼠标输入需要窗口在前台。
 - **窗口太大/太小**：改配置里的 `windowWidth`，单位是物理像素，125% 缩放时 460 ≈ 368 逻辑像素。
 - **掉线了**：默认自动重连（1.5 秒先试一次，之后 3/8/10 秒，最多 6 次）；设置 `reconnect: false` 可关。
@@ -172,14 +213,18 @@
 npm test        # 等价于 node --test
 ```
 
-22 个用例，不依赖手机、不启动 scrcpy：
+**35 个用例**，不依赖手机、不启动 scrcpy：
 
-- **纯函数**：scrcpy 参数拼装、`adb devices -l` / `wm size` 解析、退出码翻译、配置校验、
-  锁屏判据
-- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认核心路由都注册上了、桌面窗的遗留路由已经删干净、
-  `/status` 和 `/config` 返回结构正确、跨站写操作会被 403 拦掉
+- **纯函数**：scrcpy 参数拼装（含 `audio`）、`adb devices -l` / `wm size` 解析、退出码翻译、
+  配置校验、锁屏判据（含 Android 12+ 写法、判据缺失时返回 null）
+- **宿主冒烟**：用假 `ctx` 跑 `apply()`，确认路由注册、`/status` / `/config` 结构、
+  GET 写接口返回 405、缺 token 返回 403、跨站写 403、PIN 不回显且不丢
 
-CI 在 GitHub Actions 上跑 Node 20 / 22（ubuntu）。
+CI 在 GitHub Actions 上跑 Ubuntu + Windows × Node 20 / 22。
+
+## 参与
+
+见 [CONTRIBUTING.md](CONTRIBUTING.md)。改了什么记到 [CHANGELOG.md](CHANGELOG.md)。
 
 ## License
 

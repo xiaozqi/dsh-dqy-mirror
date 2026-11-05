@@ -1,0 +1,65 @@
+name: Bug 报告
+description: 投屏 / 解锁 / 面板出问题时用这个
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提之前先看一眼 [已知限制](https://github.com/xiaozqi/dsh-dfy-mirror#已知限制)——
+        比如「macOS 不能用」「只支持数字 PIN」都是预期行为。
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: 插件版本
+      description: 插件目录里 package.json 的 version
+      placeholder: 4.6.0
+    validations:
+      required: true
+
+  - type: input
+    id: dsh-version
+    attributes:
+      label: DSH 版本
+      placeholder: 0.1.0-rc.6
+    validations:
+      required: true
+
+  - type: input
+    id: phone
+    attributes:
+      label: 手机型号 / Android 版本
+      description: 设置 → 关于手机；ROM 也写上（HyperOS / EMUI / 原生）
+      placeholder: Redmi 2407FRK8EC / Android 16 / HyperOS 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 出了什么
+      description: 你期望什么、实际发生了什么
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 点胶囊
+        2. 点「投屏」
+        3. 窗口闪一下就没了
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志
+      description: |
+        `~/.dsh/dsh-dfy-mirror.log` 最后 50 行，或者在浏览器打开 `/dsh-dfy-mirror/log` 复制。
+        解锁相关的问题请额外附上：`adb shell dumpsys window | grep -i keyguard`
+      render: text
+    validations:
+      required: false

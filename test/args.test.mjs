@@ -8,9 +8,9 @@ test('默认参数：串号、宽度、置顶、关屏，一个不少', () => {
     WINDOW_TITLE,
   )
   assert.deepEqual(args, [
-    '--no-audio',
     '--window-title',
     '手机投屏',
+    '--no-audio',
     '--serial',
     '192.168.1.2:5555',
     '--window-width',
@@ -18,6 +18,12 @@ test('默认参数：串号、宽度、置顶、关屏，一个不少', () => {
     '--always-on-top',
     '--turn-screen-off',
   ])
+})
+
+test('audio=true 时不加 --no-audio（声音走 scrcpy）', () => {
+  const args = buildScrcpyArgs({ serial: 'x', windowWidth: 400, audio: true })
+  assert.equal(args.includes('--no-audio'), false)
+  assert.equal(buildScrcpyArgs({ serial: 'x', audio: false }).includes('--no-audio'), true)
 })
 
 test('永远不出现 v1 的那些私货参数', () => {
