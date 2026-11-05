@@ -21,6 +21,8 @@
 - 多设备：面板会列出所有在线设备让你选；多台在线且配置的串号不在线时不再随机挑一台，
   而是明确报错。
 - `README.en.md`、`SECURITY.md`、`CONTRIBUTING.md`、`CHANGELOG.md`、issue / PR 模板。
+- 零基础教程重写：按品牌列开发者选项路径、教怎么判断 USB 线/授权、`adb devices` 输出怎么读、
+  每步的「成功标志」、排障顺序、卸载步骤。
 - CI 增加 Windows runner（之前只跑 ubuntu，而插件是 Windows-only）。
 - `package.json`：`engines.node >= 20`、`os: ["win32"]`、英文 description、更全的 keywords。
 
