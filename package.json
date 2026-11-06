@@ -1,6 +1,6 @@
 {
   "name": "dsh-dfy-mirror",
-  "version": "4.7.0",
+  "version": "4.7.1",
   "description": "Android screen mirroring for DeepSeek Harness: one scrcpy window, one state machine, one capsule in the DSH header. Windows only.",
   "type": "module",
   "license": "MIT",
