@@ -1,7 +1,7 @@
-# dsh-dfy-mirror
+# dsh-dqy-mirror
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![ci](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml)
+[![ci](https://github.com/xiaozqi/dsh-dqy-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-dqy-mirror/actions/workflows/ci.yml)
 
 Android screen mirroring for [DeepSeek Harness](https://github.com/deepseek-ai):
 click the capsule in the DSH header and a **native scrcpy window** appears (optionally
@@ -60,7 +60,7 @@ Switching to wireless runs `adb tcpip 5555` → reads the phone's `wlan0` IPv4 �
 
 ## Configuration
 
-`~/.dsh/dsh-dfy-mirror.json` — hot-reloaded on change, no restart needed.
+`~/.dsh/dsh-dqy-mirror.json` — hot-reloaded on change, no restart needed.
 
 | Key | Default | Meaning |
 | --- | --- | --- |
@@ -77,7 +77,7 @@ Switching to wireless runs `adb tcpip 5555` → reads the phone's `wlan0` IPv4 �
 
 ## Unlock / lock
 
-`POST /dsh-dfy-mirror/unlock` runs the whole wake → dismiss-keyguard → swipe → type-PIN
+`POST /dsh-dqy-mirror/unlock` runs the whole wake → dismiss-keyguard → swipe → type-PIN
 sequence as **one adb shell command**; all branches and sleeps happen on the phone.
 Measured: 0.4 s when already unlocked, 4.7 s from screen-off + locked.
 
@@ -88,7 +88,7 @@ plugin reports "cannot read lock state" and refuses to type anything — it neve
 
 ## HTTP API
 
-All routes live under `/dsh-dfy-mirror`. Mutating routes accept **POST only** and require
+All routes live under `/dsh-dqy-mirror`. Mutating routes accept **POST only** and require
 same-origin plus an `x-dpm-token` header (random per host start, embedded only in the
 same-origin `/panel.js`).
 

@@ -198,7 +198,7 @@ UI 自动化的每一步都是「盲操作」，少一次复核就多一次落�
 用户原话：「DSH 设置里的先删除，我觉得不太符合」。
 
 一个设置页要占一个 slot、要写 React、要跟面板抢同一份配置，而配置项一共十来个。
-删掉之后：`~/.dsh/dsh-dfy-mirror.json` 直接改，宿主每次请求现读。
+删掉之后：`~/.dsh/dsh-dqy-mirror.json` 直接改，宿主每次请求现读。
 `lib/client.js`、`package.json` 的 `dsh.client`、`exports["./client"]` 一起删——
 网页半边不加载，slot 自然就不注册了。
 
@@ -209,7 +209,7 @@ UI 自动化的每一步都是「盲操作」，少一次复核就多一次落�
 而它们本身也没有限定方法。结果任意网页一句
 
 ```html
-<img src="http://127.0.0.1:51077/dsh-dfy-mirror/unlock">
+<img src="http://127.0.0.1:51077/dsh-dqy-mirror/unlock">
 ```
 
 就能让插件去解锁手机——浏览器不会拦 GET，页面也读不到响应，但副作用已经发生了。

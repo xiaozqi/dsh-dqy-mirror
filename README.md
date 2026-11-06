@@ -1,7 +1,7 @@
-# dfy 蓝色大肥鱼手机镜像 · dsh-dfy-mirror
+# dqy 青鱼手机镜像 · dsh-dqy-mirror
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![ci](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-dfy-mirror/actions/workflows/ci.yml)
+[![ci](https://github.com/xiaozqi/dsh-dqy-mirror/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaozqi/dsh-dqy-mirror/actions/workflows/ci.yml)
 
 给 [DSH](https://github.com/deepseek-ai) 加一个「手机投屏」：点一下，桌面上出现一个 **scrcpy 原生窗口**（可选置顶）。
 
@@ -16,7 +16,7 @@
 | **DSH 胶囊 / 面板** | 胶囊固定在 DSH 顶部正中 | 点胶囊展开：投屏 / 置顶 两个开关、返回/主屏/多任务、解锁/锁屏；面板每次打开都在**上方正中**，打开后可以拖走 |
 
 > v4 删掉了「设置 → 手机投屏」那一页——配置项一共就几个，直接改
-> `~/.dsh/dsh-dfy-mirror.json` 更省事，也不想在设置里塞一个半成品的控制面板。
+> `~/.dsh/dsh-dqy-mirror.json` 更省事，也不想在设置里塞一个半成品的控制面板。
 
 - 快捷键：`Ctrl+Shift+M` 开合面板（DSH 窗口有焦点时）
 - 标题上的型号在第一次查询状态时就取回来了，不用先点投屏
@@ -99,8 +99,8 @@
 手动装也行（给没有脚本权限的环境）：在 profile 的 `package.json` 里加
 
 ```json
-"dependencies": { "dsh-dfy-mirror": "file:C:/Users/<you>/.dsh/plugins/dsh-dfy-mirror" },
-"dsh": { "profile": { "bundles": [ "...", "dsh-dfy-mirror" ] } }
+"dependencies": { "dsh-dqy-mirror": "file:C:/Users/<you>/.dsh/plugins/dsh-dqy-mirror" },
+"dsh": { "profile": { "bundles": [ "...", "dsh-dqy-mirror" ] } }
 ```
 
 并在 `node_modules` 里建一个指向插件目录的 junction，然后重启 DSH。
@@ -129,7 +129,7 @@
 **复制诊断信息**会拼好「插件版本 / 系统 / 设备 / adb+scrcpy 版本 / PIN 是否设置 /
 锁屏判据原始输出 / 配置（PIN 打码）/ 最近 40 行日志」，提 issue 时直接粘贴即可。
 
-## 配置（`~/.dsh/dsh-dfy-mirror.json`）
+## 配置（`~/.dsh/dsh-dqy-mirror.json`）
 
 设置抽屉覆盖了大部分场景；这个 JSON 仍然可以直接改（宿主每次请求比 mtime，改了自动重载，
 **不用重启 DSH**）。改坏了也不至于崩：所有值都会被收敛，未知字段丢掉：
@@ -153,7 +153,7 @@
 
 ## 一键解锁 / 锁屏
 
-`POST /dsh-dfy-mirror/unlock` 把整个流程压成**一条 adb 命令**，分支和等待都在手机端做：
+`POST /dsh-dqy-mirror/unlock` 把整个流程压成**一条 adb 命令**，分支和等待都在手机端做：
 
 1. 先读一次 `dumpsys`：醒着吗、锁着吗、**有没有设锁屏密码**（`secure=true/false`）；
 2. 已解锁 → 直接返回（实测 **0.4 秒**）；
@@ -183,7 +183,7 @@
 
 ## 接口
 
-全部挂在 `/dsh-dfy-mirror` 下。**改状态的接口只接受 `POST`，并且要求同源 + `x-dpm-token`**；
+全部挂在 `/dsh-dqy-mirror` 下。**改状态的接口只接受 `POST`，并且要求同源 + `x-dpm-token`**；
 token 每次宿主启动随机生成，只出现在同源能读到的 `/panel.js` 里（这就是面板脚本的意义，
 也是为什么跨站页面既读不到、也猜不到）。
 
@@ -232,7 +232,7 @@ token 每次宿主启动随机生成，只出现在同源能读到的 `/panel.js
 - **胶囊/面板找不到了**：点胶囊（或 `Ctrl+Shift+M`）就会回到上方正中；
   面板藏在屏幕外时也会在窗口缩放后自动拉回来（`?dpm=1` 可以强制展开）。
 - **看错误全文**：面板里错误区点一下就是复制（长错误显示不全时用）。
-- **日志在哪**：`~/.dsh/dsh-dfy-mirror.log`（会滚动）。在浏览器里打开 `/dsh-dfy-mirror/log`
+- **日志在哪**：`~/.dsh/dsh-dqy-mirror.log`（会滚动）。在浏览器里打开 `/dsh-dqy-mirror/log`
   看最后 120 行；用 Windows PowerShell 直接 `Get-Content` 看需要 `-Encoding UTF8`。
 
 ## 测试

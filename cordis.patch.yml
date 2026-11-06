@@ -1,6 +1,6 @@
-﻿# DFY 风镜像（dsh-dfy-mirror）
+﻿# DQY 风镜像（dsh-dqy-mirror）
 # 只有宿主半边：页面里的胶囊由宿主注入的 panel.js 负责。
-# v4 起不再有网页半边（设置页），配置直接改 ~/.dsh/dsh-dfy-mirror.json。
+# v4 起不再有网页半边（设置页），配置直接改 ~/.dsh/dsh-dqy-mirror.json。
 - insert:
-    - id: dfy-mirror
-      name: 'dsh-dfy-mirror'
+    - id: dqy-mirror
+      name: 'dsh-dqy-mirror'

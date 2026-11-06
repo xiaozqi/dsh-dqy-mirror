@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-process.env.DSH_HOME = mkdtempSync(join(tmpdir(), 'dfy-mirror-test-'))
+process.env.DSH_HOME = mkdtempSync(join(tmpdir(), 'dqy-mirror-test-'))
 
 const routes = new Map()
 
@@ -54,7 +54,7 @@ function fakeRes() {
   return res
 }
 
-const P = '/dsh-dfy-mirror'
+const P = '/dsh-dqy-mirror'
 
 /** 走一遍插件的包装层：同源检查 / 方法检查 / token 检查都在里面。 */
 async function call(path, { method = 'GET', headers = {}, body } = {}) {

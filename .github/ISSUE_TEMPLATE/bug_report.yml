@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        提之前先看一眼 [已知限制](https://github.com/xiaozqi/dsh-dfy-mirror#已知限制)——
+        提之前先看一眼 [已知限制](https://github.com/xiaozqi/dsh-dqy-mirror#已知限制)——
         比如「macOS 不能用」「只支持数字 PIN」都是预期行为。
 
   - type: input
@@ -58,7 +58,7 @@ body:
     attributes:
       label: 日志
       description: |
-        `~/.dsh/dsh-dfy-mirror.log` 最后 50 行，或者在浏览器打开 `/dsh-dfy-mirror/log` 复制。
+        `~/.dsh/dsh-dqy-mirror.log` 最后 50 行，或者在浏览器打开 `/dsh-dqy-mirror/log` 复制。
         解锁相关的问题请额外附上：`adb shell dumpsys window | grep -i keyguard`
       render: text
     validations:

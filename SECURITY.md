@@ -2,7 +2,7 @@
 
 ## 威胁模型
 
-这个插件把「操作一台 Android 手机」的能力开在本地 HTTP 上（`/dsh-dfy-mirror/*`），
+这个插件把「操作一台 Android 手机」的能力开在本地 HTTP 上（`/dsh-dqy-mirror/*`），
 能力包括：启动/停止投屏窗口、发按键、解锁、锁屏、改配置。
 
 因此它的安全边界等同 **DSH Web 服务本身**：
@@ -23,15 +23,15 @@
 
 **仍然存在的风险**（已知边界，不是 bug）：
 
-- 同一台机器上的任意进程都能读 `~/.dsh/dsh-dfy-mirror.json`（含明文 PIN），
-  以及 `~/.dsh/dsh-dfy-mirror.log`。
+- 同一台机器上的任意进程都能读 `~/.dsh/dsh-dqy-mirror.json`（含明文 PIN），
+  以及 `~/.dsh/dsh-dqy-mirror.log`。
 - 同一台机器上的本地进程可以用 `curl` 读 `/panel.js` 拿到 token，然后调用写接口。
   这是刻意的：本机客户端没有可信身份可区分。
 - 重启宿主会重新生成 token，旧页面需要刷新才能继续写操作（读操作不受影响）。
 
 ## 报告漏洞
 
-请**不要**开公开 issue。用 GitHub 的 [Private vulnerability reporting](https://github.com/xiaozqi/dsh-dfy-mirror/security/advisories/new)，
+请**不要**开公开 issue。用 GitHub 的 [Private vulnerability reporting](https://github.com/xiaozqi/dsh-dqy-mirror/security/advisories/new)，
 或者发邮件到仓库 owner 的 GitHub 邮箱。
 
 请在报告里带上：

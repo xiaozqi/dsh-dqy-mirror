@@ -15,7 +15,7 @@ import { unlockScript } from '../lib/unlock.js'
 const hasSh = spawnSync('sh', ['-c', 'exit 0']).status === 0
 
 test('解锁脚本在真 shell 里会走到「上滑 + 输 PIN」分支', { skip: hasSh ? false : '当前环境没有 sh' }, () => {
-  const dir = mkdtempSync(join(tmpdir(), 'dfy-mirror-sh-'))
+  const dir = mkdtempSync(join(tmpdir(), 'dqy-mirror-sh-'))
   const stub = (name, body) => {
     const p = join(dir, name)
     writeFileSync(p, '#!/bin/sh\n' + body + '\n')

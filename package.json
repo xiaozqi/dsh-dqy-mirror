@@ -1,5 +1,5 @@
 {
-  "name": "dsh-dfy-mirror",
+  "name": "dsh-dqy-mirror",
   "version": "4.7.1",
   "description": "Android screen mirroring for DeepSeek Harness: one scrcpy window, one state machine, one capsule in the DSH header. Windows only.",
   "type": "module",
@@ -7,11 +7,11 @@
   "author": "xiaozqi",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xiaozqi/dsh-dfy-mirror.git"
+    "url": "git+https://github.com/xiaozqi/dsh-dqy-mirror.git"
   },
-  "homepage": "https://github.com/xiaozqi/dsh-dfy-mirror#readme",
+  "homepage": "https://github.com/xiaozqi/dsh-dqy-mirror#readme",
   "bugs": {
-    "url": "https://github.com/xiaozqi/dsh-dfy-mirror/issues"
+    "url": "https://github.com/xiaozqi/dsh-dqy-mirror/issues"
   },
   "keywords": [
     "deepseek-harness",
